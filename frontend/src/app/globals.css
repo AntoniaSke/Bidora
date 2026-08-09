@@ -24,7 +24,8 @@
   --bidora-secondary: #4c8dff;
 
   --bidora-border: #e4e7ec;
-
+  --bidora-border-hover: #cbd2d9;
+  --bidora-accent-hover: #ff522a;
 
   /* ---------------------- */
   /* SHADCN THEME           */
@@ -75,7 +76,7 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
-.hero-background {
+/* .hero-background {
   background:
     radial-gradient(
       circle at 15% 25%,
@@ -88,11 +89,23 @@
       transparent 30%
     ),
     var(--bidora-background);
-}
+} */
 
 body {
   margin: 0;
   overflow-x: hidden;
+  background:
+    radial-gradient(
+      circle at 15% 25%,
+      rgba(76, 141, 255, 0.16),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 86% 20%,
+      rgba(255, 107, 74, 0.15),
+      transparent 30%
+    ),
+    var(--bidora-background);
 }
 
 @theme inline {

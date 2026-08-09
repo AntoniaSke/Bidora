@@ -8,7 +8,7 @@ import {
 
 export default function Navbar() {
   return (
-    <nav className="w-full bg-white border-b border-[var(--border)]">
+    <nav className="w-full bg-white border-b border-[var(--bidora-border)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between">
 
         {/* Brand */}
@@ -59,16 +59,18 @@ export default function Navbar() {
               py-3
               rounded-xl
               font-semibold
+              hover:bg-[var(--bidora-accent-hover)]
+              transition
             "
           >
             Sell an Item
           </a>
 
-          <a href="/login" className="font-medium">
+          <a href="/login" className="font-medium hover:text-[var(--bidora-primary)]">
             Log In
           </a>
 
-          <a href="/register" className="font-medium">
+          <a href="/register" className="font-medium hover:text-[var(--bidora-primary)]">
             Sign Up
           </a>
         </div>
