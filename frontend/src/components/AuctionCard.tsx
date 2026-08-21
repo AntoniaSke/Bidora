@@ -1,4 +1,5 @@
 type AuctionCardProps = {
+  id: number;
   title: string;
   category: string;
   currentBid: number;
@@ -7,6 +8,7 @@ type AuctionCardProps = {
 };
 
 export default function AuctionCard({
+  id,
   title,
   category,
   currentBid,
@@ -31,26 +33,27 @@ export default function AuctionCard({
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
 
-        {image ? (
-          <img
-            src={image}
-            alt={title}
-            className="
-              h-full
-              w-full
-              object-cover
-              transition-transform
-              duration-500
-              group-hover:scale-105
-            "
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-sm text-gray-400">
-            Auction image
-          </div>
-        )}
+        <a href={`/auctions/${id}`}>
+          {image ? (
+            <img
+              src={image}
+              alt={title}
+              className="
+                h-full
+                w-full
+                object-cover
+                transition-transform
+                duration-500
+                group-hover:scale-105
+              "
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-sm text-gray-400">
+              Auction image
+            </div>
+          )}
+        </a>
 
-        {/* Badge */}
         <span
           className="
             absolute
@@ -68,7 +71,6 @@ export default function AuctionCard({
           Ending soon
         </span>
 
-        {/* Favourite button */}
         <button
           type="button"
           aria-label={`Add ${title} to favourites`}
@@ -109,18 +111,20 @@ export default function AuctionCard({
           {category}
         </p>
 
-        <h3
-          className="
-            mt-2
-            text-lg
-            font-bold
-            text-[var(--bidora-text)]
-            transition-colors
-            group-hover:text-[var(--bidora-primary)]
-          "
-        >
-          {title}
-        </h3>
+        <a href={`/auctions/${id}`}>
+          <h3
+            className="
+              mt-2
+              text-lg
+              font-bold
+              text-[var(--bidora-text)]
+              transition-colors
+              group-hover:text-[var(--bidora-primary)]
+            "
+          >
+            {title}
+          </h3>
+        </a>
 
         <div className="mt-5 flex items-end justify-between">
           <div>

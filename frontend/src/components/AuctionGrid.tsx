@@ -52,6 +52,7 @@ export default function AuctionGrid({
             {auctions.map((auction) => (
               <AuctionCard
                 key={auction.id}
+                id={auction.id}
                 title={auction.title}
                 category={auction.category}
                 currentBid={auction.currentBid}

@@ -1,6 +1,9 @@
 import Navbar from "../components/Navbar";
 import AuctionMarketplace from "../components/AuctionMarketplace";
 import PopularCategories from "../components/PopularCategories";
+import HowItWorks from "../components/HowItWorks";
+import SellerCTA from "../components/SellerCTA";
+import Footer from "../components/Footer";
 
 export default function HomePage() {
 
@@ -95,7 +98,7 @@ export default function HomePage() {
                             </a>
 
                             <a
-                                href="/how-it-works"
+                                href="#how-it-works"
                                 className="
                   border
                   border-[var(--bidora-border)]
@@ -117,8 +120,10 @@ export default function HomePage() {
 
                 <AuctionMarketplace />
                 <PopularCategories />
-
+                <HowItWorks/>
+                <SellerCTA />
             </main>
+            <Footer/>
         </>
     );
 }

@@ -41,8 +41,8 @@ export default function Navbar() {
           </a>
 
           <a
-            href="/how-it-works"
-            className="font-medium hover:text-[var(--bidora-primary)]"
+            href="#how-it-works"
+            className="font-medium hover:text-[var(--bidora-primary)]" 
           >
             How It Works
           </a>
@@ -100,7 +100,7 @@ export default function Navbar() {
                   Categories
                 </a>
 
-                <a href="/how-it-works" className="text-lg font-medium">
+                <a href="#how-it-works" className="text-lg font-medium">
                   How It Works
                 </a>
 
