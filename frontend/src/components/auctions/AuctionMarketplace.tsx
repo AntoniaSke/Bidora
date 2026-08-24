@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import AuctionSearch from "./AuctionSearch";
 import AuctionGrid from "./AuctionGrid";
-import { auctions } from "../data/auction";
+import { auctions } from "../../data/auction";
 
 export default function AuctionMarketplace() {
   const [searchTerm, setSearchTerm] = useState("");

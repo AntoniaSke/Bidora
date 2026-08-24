@@ -1,9 +1,9 @@
 import Navbar from "@/src/components/layout/Navbar";
-import Footer from "@/src/components/layout/Footer";
-import SellAuctionForm from "@/src/components/sell/SellAuctionForm";
-import HowItWorks from "@/src/components/layout/HowItWorks";
+import Footer from "@/src/components/layout//Footer";
+import ProfileForm from "@/src/components/profile/ProfileForm";
+import ProfileNav from "@/src/components/profile/ProfileNav";
 
-export default function SellPage() {
+export default function ProfilePage() {
   return (
     <>
       <Navbar />
@@ -11,28 +11,28 @@ export default function SellPage() {
       <main className="min-h-screen">
         <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-20">
 
-          <div className="max-w-2xl">
+          <div>
             <p className="text-sm font-semibold uppercase tracking-[0.14em] text-[var(--bidora-accent)]">
-              Create an auction
+              Your account
             </p>
 
             <h1 className="mt-3 text-4xl sm:text-5xl font-bold tracking-tight text-[var(--bidora-text)]">
-              Sell something worth bidding on.
+              Your profile
             </h1>
 
-            <p className="mt-4 text-base sm:text-lg text-[var(--bidora-text-secondary)]">
-              Add the details of your item, choose a starting price and decide
-              when the auction should end.
+            <p className="mt-4 max-w-2xl text-[var(--bidora-text-secondary)]">
+              Manage your personal information, delivery details and account preferences.
             </p>
           </div>
 
           <div className="mt-10">
-            <SellAuctionForm />
+            <ProfileNav/>
+            <ProfileForm />
           </div>
 
         </section>
       </main>
-    <HowItWorks/>
+
       <Footer />
     </>
   );

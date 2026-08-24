@@ -1,6 +1,6 @@
-import Navbar from "../../components/Navbar";
-import Footer from "../../components/Footer";
-import AuctionExplorer from "../../components/AuctionExplorer"
+import Navbar from "../../components/layout/Navbar";
+import Footer from "../../components/layout/Footer";
+import AuctionExplorer from "../../components/auctions/AuctionExplorer"
 
 export default function AuctionsPage() {
   return (

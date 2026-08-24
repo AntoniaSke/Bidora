@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
 
 import AuctionCard from "./AuctionCard";
-import { auctions } from "../data/auction";
+import { auctions } from "../../data/auction";
 
 export default function AuctionExplorer() {
     const [searchTerm, setSearchTerm] = useState("");

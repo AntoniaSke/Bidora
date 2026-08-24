@@ -1,39 +1,67 @@
 "use client";
 
-import { useState } from "react";
 import { ImagePlus } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+
+const auctionSchema = z.object({
+  title: z
+    .string()
+    .min(3, "Title must be at least 3 characters")
+    .max(80, "Title must be less than 80 characters"),
+
+  description: z
+    .string()
+    .min(10, "Description must be at least 10 characters")
+    .max(1000, "Description must be less than 1000 characters"),
+
+  category: z
+    .string()
+    .min(1, "Please select a category"),
+
+  startingPrice: z
+    .number()
+    .positive("Starting price must be greater than 0"),
+
+  endDate: z
+    .string()
+    .min(1, "Please select when the auction should end"),
+});
+
+type AuctionFormData = z.infer<typeof auctionSchema>;
 
 export default function SellAuctionForm() {
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    category: "",
-    startingPrice: "",
-    endDate: "",
+
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<AuctionFormData>({
+    resolver: zodResolver(auctionSchema),
   });
 
-  function handleChange(
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) {
-    const { name, value } = e.target;
-
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  function onSubmit(data: AuctionFormData) {
+    console.log(data);
   }
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-    console.log(form);
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    const previewUrl = URL.createObjectURL(file);
+
+    setImagePreview(previewUrl);
   }
-
   return (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={handleSubmit(onSubmit)}
       className="
         rounded-3xl
         border
@@ -59,25 +87,28 @@ export default function SellAuctionForm() {
 
             <input
               id="title"
-              name="title"
               type="text"
-              value={form.title}
-              onChange={handleChange}
+              {...register("title")}
               placeholder="e.g. Vintage Canon Camera"
               className="
-                mt-2
-                w-full
-                rounded-xl
-                border
-                border-[var(--bidora-border)]
-                bg-white
-                px-4
-                py-3.5
-                outline-none
-                transition
-                focus:border-[var(--bidora-primary)]
-              "
+                    mt-2
+                    w-full
+                    rounded-xl
+                    border
+                    border-[var(--bidora-border)]
+                    bg-white
+                    px-4
+                    py-3.5
+                    outline-none
+                    transition
+                    focus:border-[var(--bidora-primary)]
+                  "
             />
+            {errors.title && (
+              <p className="mt-2 text-sm text-red-500">
+                {errors.title.message}
+              </p>
+            )}
           </div>
 
           <div>
@@ -90,26 +121,30 @@ export default function SellAuctionForm() {
 
             <textarea
               id="description"
-              name="description"
-              value={form.description}
-              onChange={handleChange}
+              {...register("description")}
               placeholder="Describe the condition, details and anything buyers should know..."
               rows={6}
               className="
-                mt-2
-                w-full
-                resize-none
-                rounded-xl
-                border
-                border-[var(--bidora-border)]
-                bg-white
-                px-4
-                py-3.5
-                outline-none
-                transition
-                focus:border-[var(--bidora-primary)]
-              "
+                  mt-2
+                  w-full
+                  resize-none
+                  rounded-xl
+                  border
+                  border-[var(--bidora-border)]
+                  bg-white
+                  px-4
+                  py-3.5
+                  outline-none
+                  transition
+                  focus:border-[var(--bidora-primary)]
+                "
             />
+
+            {errors.description && (
+              <p className="mt-2 text-sm text-red-500">
+                {errors.description.message}
+              </p>
+            )}
           </div>
 
           <div>
@@ -122,21 +157,19 @@ export default function SellAuctionForm() {
 
             <select
               id="category"
-              name="category"
-              value={form.category}
-              onChange={handleChange}
+              {...register("category")}
               className="
-                mt-2
-                w-full
-                rounded-xl
-                border
-                border-[var(--bidora-border)]
-                bg-white
-                px-4
-                py-3.5
-                outline-none
-                focus:border-[var(--bidora-primary)]
-              "
+                    mt-2
+                    w-full
+                    rounded-xl
+                    border
+                    border-[var(--bidora-border)]
+                    bg-white
+                    px-4
+                    py-3.5
+                    outline-none
+                    focus:border-[var(--bidora-primary)]
+                  "
             >
               <option value="">Select category</option>
               <option value="Electronics">Electronics</option>
@@ -146,6 +179,12 @@ export default function SellAuctionForm() {
               <option value="Art">Art</option>
               <option value="Home">Home</option>
             </select>
+
+            {errors.category && (
+              <p className="mt-2 text-sm text-red-500">
+                {errors.category.message}
+              </p>
+            )}
           </div>
 
         </div>
@@ -169,34 +208,46 @@ export default function SellAuctionForm() {
                 flex-col
                 items-center
                 justify-center
+                overflow-hidden
                 rounded-2xl
                 border
                 border-dashed
                 border-[var(--bidora-border)]
                 bg-[var(--bidora-background)]
-                px-6
+                p-3
                 text-center
                 transition
                 hover:border-[var(--bidora-primary)]
               "
             >
-              <ImagePlus
-                size={34}
-                className="text-[var(--bidora-primary)]"
-              />
+              {imagePreview ? (
+                <img
+                  src={imagePreview}
+                  alt="Auction preview"
+                  className="h-56 w-full rounded-xl object-cover"
+                />
+              ) : (
+                <>
+                  <ImagePlus
+                    size={34}
+                    className="text-[var(--bidora-primary)]"
+                  />
 
-              <p className="mt-4 font-semibold text-[var(--bidora-text)]">
-                Upload an image
-              </p>
+                  <p className="mt-4 font-semibold text-[var(--bidora-text)]">
+                    Upload an image
+                  </p>
 
-              <p className="mt-2 text-sm text-[var(--bidora-text-secondary)]">
-                PNG or JPG
-              </p>
+                  <p className="mt-2 text-sm text-[var(--bidora-text-secondary)]">
+                    PNG or JPG
+                  </p>
+                </>
+              )}
 
               <input
                 id="image"
                 type="file"
                 accept="image/png,image/jpeg"
+                onChange={handleImageChange}
                 className="hidden"
               />
             </label>
@@ -217,27 +268,33 @@ export default function SellAuctionForm() {
 
               <input
                 id="startingPrice"
-                name="startingPrice"
                 type="number"
-                min="0"
                 step="0.01"
-                value={form.startingPrice}
-                onChange={handleChange}
+                {...register("startingPrice", {
+                  valueAsNumber: true,
+                })}
                 placeholder="0.00"
                 className="
-                  w-full
-                  rounded-xl
-                  border
-                  border-[var(--bidora-border)]
-                  bg-white
-                  py-3.5
-                  pl-8
-                  pr-4
-                  outline-none
-                  focus:border-[var(--bidora-primary)]
-                "
+                    w-full
+                    rounded-xl
+                    border
+                    border-[var(--bidora-border)]
+                    bg-white
+                    py-3.5
+                    pl-8
+                    pr-4
+                    outline-none
+                    focus:border-[var(--bidora-primary)]
+                  "
               />
+
+
             </div>
+            {errors.startingPrice && (
+              <p className="mt-2 text-sm text-red-500">
+                {errors.startingPrice.message}
+              </p>
+            )}
           </div>
 
           <div>
@@ -251,10 +308,8 @@ export default function SellAuctionForm() {
             <div className="mt-2 flex w-full min-w-0 rounded-xl border border-[var(--bidora-border)] bg-white px-4 py-3.5">
               <input
                 id="endDate"
-                name="endDate"
                 type="datetime-local"
-                value={form.endDate}
-                onChange={handleChange}
+                {...register("endDate")}
                 className="
                   block
                   w-full
@@ -266,6 +321,12 @@ export default function SellAuctionForm() {
                 "
               />
             </div>
+
+            {errors.endDate && (
+              <p className="mt-2 text-sm text-red-500">
+                {errors.endDate.message}
+              </p>
+            )}
           </div>
 
         </div>

@@ -1,5 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
-import { categories } from "../data/categories";
+import { categories } from "../../data/categories";
 
 export default function PopularCategories() {
   return (

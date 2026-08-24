@@ -1,9 +1,9 @@
-import Navbar from "../components/Navbar";
-import AuctionMarketplace from "../components/AuctionMarketplace";
-import PopularCategories from "../components/PopularCategories";
-import HowItWorks from "../components/HowItWorks";
-import SellerCTA from "../components/SellerCTA";
-import Footer from "../components/Footer";
+import Navbar from "../components/layout/Navbar";
+import AuctionMarketplace from "../components/auctions/AuctionMarketplace";
+import PopularCategories from "../components/home/PopularCategories";
+import HowItWorks from "../components/layout/HowItWorks";
+import SellerCTA from "../components/sell/SellerCTA";
+import Footer from "../components/layout/Footer";
 
 export default function HomePage() {
 
