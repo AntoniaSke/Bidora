@@ -1,37 +1,55 @@
 # Bidora
 
-**Bidora** is a full-stack online auction marketplace where users can discover items, create auctions, save favourites and compete through live bidding.
+**Bidora** is a full-stack online auction marketplace where users can discover items, create auctions, manage their profile, save favourites and participate in bidding.
 
-The project is being developed as a modern full-stack web application with a separate frontend, backend API and PostgreSQL database.
+The project is being built as a production-style full-stack application with a separate frontend, backend API and PostgreSQL database.
 
-## Project Structure
+## Project structure
 
 ```text
 Bidora/
 ├── frontend/
-└── backend/
+├── backend/
+└── README.md
 ```
+
+## Current project status
+
+The main frontend foundation is complete and backend integration has started.
+
+The project now supports a real authentication flow with PostgreSQL persistence.
+
+### Working end-to-end flows
+
+- User registration
+- Password hashing
+- User login
+- JWT creation
+- httpOnly cookie authentication
+- Protected authentication check
+- User profile loading
+- User profile updates
+- Logout
+- PostgreSQL persistence through Prisma
 
 ## Frontend
 
-The frontend provides the user-facing marketplace experience.
+### Implemented
 
-### Current Features
-
-- Responsive marketplace homepage
-- Auction browsing and filtering
+- Responsive homepage
+- Auction browsing UI
 - Auction details pages
-- Sell Auction form
+- Sell Auction UI
 - Form validation
-- Login and registration pages
-- Editable user profile
-- Favourites
-- My Bids
-- My Auctions
-- Responsive navigation
-- Mobile-first UI
+- Login and registration
+- Authentication-aware UI
+- Editable profile
+- Favourites UI
+- My Bids UI
+- My Auctions UI
+- Responsive desktop and mobile layouts
 
-### Frontend Stack
+### Stack
 
 - Next.js 16
 - React
@@ -44,20 +62,26 @@ The frontend provides the user-facing marketplace experience.
 
 ## Backend
 
-The backend provides the API and application logic.
+### Implemented
 
-### Current Work
-
-- Express API server
-- Auction endpoints
-- Zod request validation
+- Express REST API
 - PostgreSQL database
 - Prisma ORM
-- Auction database model
-- Prisma migrations
-- Prisma Studio
+- Zod backend validation
+- Auction endpoints
+- User model
+- Registration endpoint
+- Login endpoint
+- bcrypt password hashing
+- JWT authentication
+- httpOnly cookies
+- Authentication middleware
+- Protected user endpoint
+- Profile update endpoint
+- Logout endpoint
+- Organized backend architecture with routes, controllers, middleware and schemas
 
-### Backend Stack
+### Stack
 
 - Node.js
 - Express
@@ -65,58 +89,88 @@ The backend provides the API and application logic.
 - PostgreSQL
 - Prisma 7
 - Zod
+- bcrypt
+- JWT
+- cookie-parser
+- cors
 
 ## Architecture
 
 ```text
-Frontend
-   ↓
+Next.js Frontend
+       ↓
 HTTP / REST API
-   ↓
+       ↓
 Express Backend
-   ↓
+       ↓
+Authentication / Business Logic
+       ↓
 Prisma
-   ↓
+       ↓
 PostgreSQL
 ```
 
-## Current Development Status
+## Authentication
 
-The main frontend foundation has been completed.
+Bidora currently uses:
 
-Backend development has started, including the Express server, auction routes, validation and initial PostgreSQL/Prisma setup.
+```text
+JWT
++
+httpOnly cookies
+```
 
-The next major milestone is replacing demo frontend data and temporary backend data with persistent database-driven functionality.
+The backend verifies the JWT through authentication middleware before allowing access to protected routes.
 
-## Planned Features
+## Current API
 
-- User registration and authentication
-- Secure password handling
-- User profiles
-- Create and manage auctions
-- Persistent favourites
-- Bid history
-- Seller auction management
-- Real-time bidding
-- Real auction countdowns
-- Image uploads
-- Notifications
-- Winner selection
-- Payments
-- Protected API routes
-- Production deployment
+```http
+GET   /api/health
 
-## Planned Infrastructure
+GET   /api/auctions
+GET   /api/auctions/:id
+POST  /api/auctions
+
+POST  /api/auth/register
+POST  /api/auth/login
+GET   /api/auth/me
+POST  /api/auth/logout
+
+PATCH /api/users/me
+```
+
+## Current development focus
+
+The current focus is moving from UI/demo data to fully persistent marketplace functionality.
+
+## Next major milestones
+
+- Finalize navbar/account navigation
+- Connect auction frontend pages to PostgreSQL-backed API data
+- Connect Sell Auction to the authenticated user
+- Add User–Auction relationships
+- Add favourites
+- Add bid model and bid history
+- Add authorization for auction ownership
+- Add real-time bidding
+- Add real image uploads
+- Add notifications
+- Add auction winner logic
+- Add payments
+- Add protected frontend routes
+- Deploy frontend, backend and PostgreSQL/cloud infrastructure
+
+## Planned infrastructure
 
 Future deployment may include:
 
 - Docker
-- Linux / Ubuntu
+- Ubuntu / Linux
 - Nginx
 - Cloudflare
-- PostgreSQL
-- CI/CD with GitHub Actions
+- Managed PostgreSQL
+- GitHub Actions CI/CD
 
 ## Goal
 
-The goal of Bidora is to evolve from a frontend marketplace prototype into a production-style full-stack auction platform with real authentication, persistent data and real-time bidding.
+The goal of Bidora is to evolve into a complete full-stack auction platform with secure authentication, persistent marketplace data, user account management and real-time bidding.
