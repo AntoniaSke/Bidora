@@ -1,5 +1,5 @@
 import { Menu } from "lucide-react";
-
+import AuthNavActions from "@/src/components/auth/AuthNavActions";
 import {
   Sheet,
   SheetContent,
@@ -53,26 +53,20 @@ export default function Navbar() {
           <a
             href="/sell"
             className="
-              bg-[var(--bidora-accent)]
-              text-white
-              px-6
-              py-3
-              rounded-xl
-              font-semibold
-              hover:bg-[var(--bidora-accent-hover)]
-              transition
-            "
+      rounded-xl
+      bg-[var(--bidora-accent)]
+      px-5
+      py-2.5
+      font-semibold
+      text-white
+      transition
+      hover:opacity-90
+    "
           >
             Sell an Item
           </a>
 
-          <a href="/login" className="font-medium hover:text-[var(--bidora-primary)]">
-            Log In
-          </a>
-
-          <a href="/register" className="font-medium hover:text-[var(--bidora-primary)]">
-            Sign Up
-          </a>
+          <AuthNavActions />
         </div>
 
         {/* Mobile */}
@@ -123,33 +117,7 @@ export default function Navbar() {
 
                   <div className="flex gap-3 mt-4">
 
-                    <a
-                      href="/login"
-                      className="
-                        flex-1
-                        text-center
-                        border
-                        border-[var(--bidora-border)]
-                        py-3
-                        rounded-xl
-                      "
-                    >
-                      Log In
-                    </a>
-
-                    <a
-                      href="/register"
-                      className="
-                        flex-1
-                        text-center
-                        border
-                        border-[var(--bidora-border)]
-                        py-3
-                        rounded-xl
-                      "
-                    >
-                      Sign Up
-                    </a>
+                    <AuthNavActions mobile />
 
                   </div>
                 </div>

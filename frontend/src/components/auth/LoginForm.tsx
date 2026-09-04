@@ -5,6 +5,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const loginSchema = z.object({
     email: z
@@ -26,9 +27,43 @@ export default function LoginForm() {
     } = useForm<LoginFormData>({
         resolver: zodResolver(loginSchema),
     });
+    const router = useRouter();
+    const [loginError, setLoginError] = useState("");
 
-    function onSubmit(data: LoginFormData) {
-        console.log(data);
+    async function onSubmit(data: LoginFormData) {
+        setLoginError("");
+
+        try {
+            const response = await fetch(
+                "http://localhost:4000/api/auth/login",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                    body: JSON.stringify(data),
+                }
+            );
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                setLoginError(
+                    result.message || "Invalid email or password"
+                );
+
+                return;
+            }
+
+            router.push("/profile");
+        } catch (error) {
+            console.error("Login request failed:", error);
+
+            setLoginError(
+                "Could not connect to the server. Please try again."
+            );
+        }
     }
 
     const [showPassword, setShowPassword] = useState(false);
@@ -58,16 +93,16 @@ export default function LoginForm() {
                     {...register("email")}
                     placeholder="you@example.com"
                     className="
-            mt-2
-            w-full
-            rounded-xl
-            border
-            border-[var(--bidora-border)]
-            px-4
-            py-3.5
-            outline-none
-            focus:border-[var(--bidora-primary)]
-          "
+                        mt-2
+                        w-full
+                        rounded-xl
+                        border
+                        border-[var(--bidora-border)]
+                        px-4
+                        py-3.5
+                        outline-none
+                        focus:border-[var(--bidora-primary)]
+                    "
                 />
 
                 {errors.email && (
@@ -137,6 +172,23 @@ export default function LoginForm() {
                     </p>
                 )}
             </div>
+                {loginError && (
+            <div
+                className="
+                mt-5
+                rounded-xl
+                border
+                border-red-200
+                bg-red-50
+                px-4
+                py-3
+                text-sm
+                text-red-600
+                "
+            >
+                {loginError}
+            </div>
+            )}
 
             <button
                 type="submit"

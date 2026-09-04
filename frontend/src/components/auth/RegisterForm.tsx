@@ -5,13 +5,14 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const registerSchema = z
     .object({
-        name: z
-            .string()
-            .min(2, "Name must be at least 2 characters"),
 
+        username: z
+            .string()
+            .min(2, "Username must be at least 2 characters"),
         email: z
             .string()
             .email("Please enter a valid email"),
@@ -42,9 +43,38 @@ export default function RegisterForm() {
     } = useForm<RegisterFormData>({
         resolver: zodResolver(registerSchema),
     });
+    const router = useRouter();
 
-    function onSubmit(data: RegisterFormData) {
-        console.log(data);
+    async function onSubmit(data: RegisterFormData) {
+        try {
+            const response = await fetch(
+                "http://localhost:4000/api/auth/register",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({
+                       
+                        username: data.username,
+                        email: data.email,
+                        password: data.password,
+                    }),
+                }
+            );
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                console.error(result.message);
+                return;
+            }
+
+            router.push("/login");
+        } catch (error) {
+            console.error("Registration request failed:", error);
+        }
     }
 
     const [showPassword, setShowPassword] = useState(false);
@@ -63,17 +93,17 @@ export default function RegisterForm() {
             {/* NAME */}
             <div>
                 <label
-                    htmlFor="name"
+                    htmlFor="username"
                     className="text-sm font-semibold text-[var(--bidora-text)]"
                 >
-                    Name
+                    Username
                 </label>
 
                 <input
-                    id="name"
+                    id="username"
                     type="text"
-                    {...register("name")}
-                    placeholder="Your name"
+                    {...register("username")}
+                    placeholder="Your username"
                     className="
                         mt-2
                         w-full
@@ -87,9 +117,9 @@ export default function RegisterForm() {
                     "
                 />
 
-                {errors.name && (
+                {errors.username && (
                     <p className="mt-2 text-sm text-red-500">
-                        {errors.name.message}
+                        {errors.username.message}
                     </p>
                 )}
             </div>
