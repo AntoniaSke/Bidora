@@ -18,8 +18,12 @@ model Auction {
   bids          Int      @default(0)
   image         String
   endsAt        DateTime
-  seller        String
+  sellerId      Int
+  seller        User     @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   createdAt     DateTime @default(now())
+
+  favourites Favourite[]
+  bidHistory Bid[]
 }
 
 model User {
@@ -36,4 +40,49 @@ model User {
   bio        String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
+  favourites Favourite[]
+  auctions   Auction[]
+  bidsPlaced Bid[]
+  notifications Notification[]
+}
+
+model Favourite {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  auctionId Int
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  auction   Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, auctionId])
+}
+
+model Bid {
+  id        Int      @id @default(autoincrement())
+  amount    Float
+  createdAt DateTime @default(now())
+
+  userId    Int
+  auctionId Int
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  auction   Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  type      String
+  message   String
+  auctionId Int?
+  isRead    Boolean  @default(false)
+  dedupeKey String?  @unique
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isRead])
 }
