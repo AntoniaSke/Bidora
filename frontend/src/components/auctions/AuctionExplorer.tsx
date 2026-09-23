@@ -1,18 +1,137 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
 
 import AuctionCard from "./AuctionCard";
-import { auctions } from "../../data/auction";
+
+import { socket } from "@/lib/socket";
+
+type Auction = {
+    id: number;
+    title: string;
+    description: string;
+    category: string;
+    startingPrice: number;
+    currentBid: number;
+    bids: number;
+    image: string;
+    endsAt: string;
+    sellerId: number;
+};
 
 export default function AuctionExplorer() {
     const [searchTerm, setSearchTerm] = useState("");
     const [category, setCategory] = useState("All");
     const [sort, setSort] = useState("ending-soon");
+    const [favouriteIds, setFavouriteIds] = useState<number[]>(
+        []
+    );
+    const [auctions, setAuctions] = useState<Auction[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [currentUserId, setCurrentUserId] =
+        useState<number | null>(null);
+
+    const [now, setNow] = useState(Date.now());
+
+    useEffect(() => {
+        async function loadData() {
+            try {
+                const [
+                    auctionsResponse,
+                    favouritesResponse,
+                    userResponse,
+                ] = await Promise.all([
+                    fetch("http://localhost:4000/api/auctions"),
+
+                    fetch("http://localhost:4000/api/favourites", {
+                        credentials: "include",
+                    }),
+
+                    fetch("http://localhost:4000/api/auth/me", {
+                        credentials: "include",
+                    }),
+                ]);
+
+                if (auctionsResponse.ok) {
+                    const auctionsData =
+                        await auctionsResponse.json();
+
+                    setAuctions(auctionsData);
+                }
+
+                if (favouritesResponse.ok) {
+                    const favouritesData =
+                        await favouritesResponse.json();
+
+                    const ids = favouritesData.map(
+                        (auction: { id: number }) => auction.id
+                    );
+
+                    setFavouriteIds(ids);
+                }
+
+                if (userResponse.ok) {
+                    const user = await userResponse.json();
+
+                    setCurrentUserId(user.id);
+                }
+            } catch (error) {
+                console.error(
+                    "Could not load auction data:",
+                    error
+                );
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        loadData();
+
+        socket.connect();
+
+        function handleBidPlaced(data: {
+            auctionId: number;
+            currentBid: number;
+            bids: number;
+        }) {
+            setAuctions((prev) =>
+                prev.map((auction) =>
+                    auction.id === data.auctionId
+                        ? {
+                            ...auction,
+                            currentBid:
+                                data.currentBid,
+                            bids: data.bids,
+                        }
+                        : auction
+                )
+            );
+        }
+
+        socket.on(
+            "bid-placed",
+            handleBidPlaced
+        );
+
+        return () => {
+            socket.off(
+                "bid-placed",
+                handleBidPlaced
+            );
+        };
+
+        const interval = setInterval(() => {
+            setNow(Date.now());
+        }, 60_000);
+
+        return () => {
+            clearInterval(interval);
+        };
+    }, []);
 
     const filteredAuctions = useMemo(() => {
-        const filtered = auctions.filter((auction) => {
+        return auctions.filter((auction) => {
             const search = searchTerm.toLowerCase();
 
             const matchesSearch =
@@ -20,13 +139,30 @@ export default function AuctionExplorer() {
                 auction.category.toLowerCase().includes(search);
 
             const matchesCategory =
-                category === "All" || auction.category === category;
+                category === "All" ||
+                auction.category === category;
 
-            return matchesSearch && matchesCategory;
+            const isNotOwnAuction =
+                currentUserId === null ||
+                auction.sellerId !== currentUserId;
+
+            const isActive =
+                new Date(auction.endsAt).getTime() > now;
+
+            return (
+                matchesSearch &&
+                matchesCategory &&
+                isNotOwnAuction &&
+                isActive
+            );
         });
-
-        return filtered;
-    }, [searchTerm, category]);
+    }, [
+        auctions,
+        searchTerm,
+        category,
+        currentUserId,
+        now,
+    ]);
 
     return (
         <section className="pb-20">
@@ -45,32 +181,32 @@ export default function AuctionExplorer() {
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="
-              w-full
-              rounded-2xl
-              border
-              border-[var(--bidora-border)]
-              bg-white
-              py-4
-              pl-12
-              pr-4
-              outline-none
-              transition
-              focus:border-[var(--bidora-primary)]
-            "
+                        w-full
+                        rounded-2xl
+                        border
+                        border-[var(--bidora-border)]
+                        bg-white
+                        py-4
+                        pl-12
+                        pr-4
+                        outline-none
+                        transition
+                        focus:border-[var(--bidora-primary)]
+                        "
                     />
                 </div>
 
                 {/* Filters */}
                 <div
                     className="
-            mt-5
-            flex
-            flex-col
-            md:flex-row
-            md:items-center
-            md:justify-between
-            gap-4
-          "
+                        mt-5
+                        flex
+                        flex-col
+                        md:flex-row
+                        md:items-center
+                        md:justify-between
+                        gap-4
+                    "
                 >
                     <div className="flex flex-wrap gap-3">
 
@@ -78,14 +214,14 @@ export default function AuctionExplorer() {
                             value={category}
                             onChange={(e) => setCategory(e.target.value)}
                             className="
-                rounded-xl
-                border
-                border-[var(--bidora-border)]
-                bg-white
-                px-4
-                py-3
-                outline-none
-              "
+                                rounded-xl
+                                border
+                                border-[var(--bidora-border)]
+                                bg-white
+                                px-4
+                                py-3
+                                outline-none
+                            "
                         >
                             <option value="All">All categories</option>
                             <option value="Electronics">Electronics</option>
@@ -98,14 +234,14 @@ export default function AuctionExplorer() {
 
                         <select
                             className="
-                rounded-xl
-                border
-                border-[var(--bidora-border)]
-                bg-white
-                px-4
-                py-3
-                outline-none
-              "
+                                rounded-xl
+                                border
+                                border-[var(--bidora-border)]
+                                bg-white
+                                px-4
+                                py-3
+                                outline-none
+                            "
                         >
                             <option>Any price</option>
                             <option>Under €50</option>
@@ -116,14 +252,14 @@ export default function AuctionExplorer() {
 
                         <select
                             className="
-                rounded-xl
-                border
-                border-[var(--bidora-border)]
-                bg-white
-                px-4
-                py-3
-                outline-none
-              "
+                                rounded-xl
+                                border
+                                border-[var(--bidora-border)]
+                                bg-white
+                                px-4
+                                py-3
+                                outline-none
+                            "
                         >
                             <option>All statuses</option>
                             <option>Ending soon</option>
@@ -143,14 +279,14 @@ export default function AuctionExplorer() {
                             value={sort}
                             onChange={(e) => setSort(e.target.value)}
                             className="
-                rounded-xl
-                border
-                border-[var(--bidora-border)]
-                bg-white
-                px-4
-                py-3
-                outline-none
-              "
+                                rounded-xl
+                                border
+                                border-[var(--bidora-border)]
+                                bg-white
+                                px-4
+                                py-3
+                                outline-none
+                            "
                         >
                             <option value="ending-soon">
                                 Ending soon
@@ -192,13 +328,13 @@ export default function AuctionExplorer() {
                 {filteredAuctions.length > 0 ? (
                     <div
                         className="
-              grid
-              grid-cols-1
-              sm:grid-cols-2
-              lg:grid-cols-3
-              xl:grid-cols-4
-              gap-6
-            "
+                            grid
+                            grid-cols-1
+                            sm:grid-cols-2
+                            lg:grid-cols-3
+                            xl:grid-cols-4
+                            gap-6
+                            "
                     >
                         {filteredAuctions.map((auction) => (
                             <AuctionCard
@@ -209,20 +345,22 @@ export default function AuctionExplorer() {
                                 currentBid={auction.currentBid}
                                 bids={auction.bids}
                                 image={auction.image}
+                                endsAt={auction.endsAt}
+                                isFavourite={favouriteIds.includes(auction.id)}
                             />
                         ))}
                     </div>
                 ) : (
                     <div
                         className="
-              rounded-2xl
-              border
-              border-dashed
-              border-[var(--bidora-border)]
-              bg-white
-              py-20
-              text-center
-            "
+                            rounded-2xl
+                            border
+                            border-dashed
+                            border-[var(--bidora-border)]
+                            bg-white
+                            py-20
+                            text-center
+                            "
                     >
                         <p className="text-lg font-semibold text-[var(--bidora-text)]">
                             No auctions found
@@ -239,17 +377,17 @@ export default function AuctionExplorer() {
                     <button
                         type="button"
                         className="
-              rounded-xl
-              border
-              border-[var(--bidora-primary)]
-              px-7
-              py-3
-              font-semibold
-              text-[var(--bidora-primary)]
-              transition
-              hover:bg-[var(--bidora-primary)]
-              hover:text-white
-            "
+                            rounded-xl
+                            border
+                            border-[var(--bidora-primary)]
+                            px-7
+                            py-3
+                            font-semibold
+                            text-[var(--bidora-primary)]
+                            transition
+                            hover:bg-[var(--bidora-primary)]
+                            hover:text-white
+                            "
                     >
                         Load more
                     </button>

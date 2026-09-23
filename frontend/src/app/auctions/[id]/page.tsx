@@ -1,6 +1,6 @@
 import Navbar from "../../../components/layout/Navbar";
 import Footer from "../../../components/layout/Footer";
-import { auctions } from "../../../data/auction";
+import BidPanel from "../../../components/auctions/BidPanel";
 
 type AuctionPageProps = {
   params: Promise<{
@@ -8,16 +8,43 @@ type AuctionPageProps = {
   }>;
 };
 
+type Auction = {
+  id: number;
+  title: string;
+  description: string;
+  category: string;
+  startingPrice: number;
+  currentBid: number;
+  bids: number;
+  image: string;
+  endsAt: string;
+  hasEnded: boolean;
+
+  winner: {
+    userId: number;
+    username: string;
+    amount: number;
+  } | null;
+
+  seller: {
+    id: number;
+    username: string;
+  };
+};
+
 export default async function AuctionPage({
   params,
 }: AuctionPageProps) {
   const { id } = await params;
 
-  const auction = auctions.find(
-    (auction) => auction.id === Number(id)
+  const response = await fetch(
+    `http://localhost:4000/api/auctions/${id}`,
+    {
+      cache: "no-store",
+    }
   );
 
-  if (!auction) {
+  if (!response.ok) {
     return (
       <>
         <Navbar />
@@ -34,6 +61,8 @@ export default async function AuctionPage({
       </>
     );
   }
+
+  const auction: Auction = await response.json();
 
   return (
     <>
@@ -100,118 +129,64 @@ export default async function AuctionPage({
               <p className="mt-4 text-[var(--bidora-text-secondary)]">
                 Sold by{" "}
                 <span className="font-medium text-[var(--bidora-text)]">
-                  {auction.seller}
+                  {auction.seller.username}
                 </span>
               </p>
 
-              {/* BID INFO */}
-              <div
-                className="
-                  mt-8
-                  rounded-2xl
-                  border
-                  border-[var(--bidora-border)]
-                  bg-white
-                  p-6
-                "
-              >
-                <div className="flex items-end justify-between gap-6">
+              <BidPanel
+                auctionId={auction.id}
+                currentBid={auction.currentBid}
+                bids={auction.bids}
+                endsAt={auction.endsAt}
+                sellerId={auction.seller.id}
+              />
 
-                  <div>
-                    <p className="text-sm text-[var(--bidora-text-secondary)]">
-                      Current bid
-                    </p>
+              {auction.hasEnded && (
+                <div
+                  className="
+      mt-5
+      rounded-2xl
+      border
+      border-[var(--bidora-border)]
+      bg-white
+      p-5
+    "
+                >
+                  {auction.winner ? (
+                    <>
+                      <p className="text-sm font-medium text-[var(--bidora-text-secondary)]">
+                        Auction winner
+                      </p>
 
-                    <p className="mt-1 text-4xl font-bold text-[var(--bidora-primary)]">
-                      €{auction.currentBid}
-                    </p>
+                      <div className="mt-2 flex items-center justify-between gap-4">
+                        <div>
+                          <p className="font-bold text-[var(--bidora-text)]">
+                            {auction.winner.username}
+                          </p>
 
-                    <p className="mt-2 text-sm text-[var(--bidora-text-secondary)]">
-                      {auction.bids} bids
-                    </p>
-                  </div>
+                          <p className="mt-1 text-sm text-[var(--bidora-text-secondary)]">
+                            Winning bid
+                          </p>
+                        </div>
 
-                  <div className="text-right">
-                    <p className="text-sm text-[var(--bidora-text-secondary)]">
-                      Time remaining
-                    </p>
+                        <p className="text-2xl font-bold text-[var(--bidora-primary)]">
+                          €{auction.winner.amount}
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-semibold text-[var(--bidora-text)]">
+                        Auction ended
+                      </p>
 
-                    <p className="mt-1 text-xl font-semibold text-[var(--bidora-accent)]">
-                      02:14:36
-                    </p>
-                  </div>
-
+                      <p className="mt-1 text-sm text-[var(--bidora-text-secondary)]">
+                        No bids were placed on this auction.
+                      </p>
+                    </>
+                  )}
                 </div>
-
-                {/* BID FORM */}
-                <div className="mt-7">
-
-                  <label
-                    htmlFor="bid"
-                    className="text-sm font-medium text-[var(--bidora-text)]"
-                  >
-                    Your bid
-                  </label>
-
-                  <div className="mt-2 flex flex-col sm:flex-row gap-3">
-
-                    <div className="relative flex-1">
-                      <span
-                        className="
-                          absolute
-                          left-4
-                          top-1/2
-                          -translate-y-1/2
-                          text-[var(--bidora-text-secondary)]
-                        "
-                      >
-                        €
-                      </span>
-
-                      <input
-                        id="bid"
-                        type="number"
-                        placeholder={`${auction.currentBid + 1}`}
-                        className="
-                          w-full
-                          rounded-xl
-                          border
-                          border-[var(--bidora-border)]
-                          bg-white
-                          py-3.5
-                          pl-8
-                          pr-4
-                          outline-none
-                          focus:border-[var(--bidora-primary)]
-                        "
-                      />
-                    </div>
-
-                    <button
-                      type="button"
-                      className="
-                        rounded-xl
-                        bg-[var(--bidora-primary)]
-                        px-7
-                        py-3.5
-                        font-semibold
-                        text-white
-                        transition
-                        hover:bg-[var(--bidora-primary-hover)]
-                      "
-                    >
-                      Place bid
-                    </button>
-
-                  </div>
-
-                  <p className="mt-2 text-xs text-[var(--bidora-text-secondary)]">
-                    Enter an amount higher than the current bid.
-                  </p>
-                </div>
-
-              </div>
-
+              )}
               {/* DESCRIPTION */}
               <div className="mt-10">
                 <h2 className="text-xl font-bold text-[var(--bidora-text)]">

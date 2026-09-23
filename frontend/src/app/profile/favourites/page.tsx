@@ -1,19 +1,19 @@
 import Navbar from "@/src/components/layout/Navbar";
 import Footer from "@/src/components/layout/Footer";
 import AccountSection from "@/src/components/profile/AccountSection";
-import MyAuctionsList from "@/src/components/profile/MyAuctionsList";
+import FavouritesList from "@/src/components/profile/favourites/FavouritesList";
 
-export default function MyAuctionsPage() {
+export default function FavouritesPage() {
   return (
     <>
       <Navbar />
 
       <main className="min-h-screen">
         <AccountSection
-          title="My Auctions"
-          description="Manage the auctions you have created."
+          title="Favourites"
+          description="Auctions you have saved for later."
         >
-          <MyAuctionsList />
+          <FavouritesList />
         </AccountSection>
       </main>
 

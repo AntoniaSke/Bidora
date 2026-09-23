@@ -8,7 +8,10 @@ import {
   Heart,
   Gavel,
   Package,
+  Bell,
 } from "lucide-react";
+
+import { socket } from "@/lib/socket";
 
 type AuthNavActionsProps = {
   mobile?: boolean;
@@ -19,9 +22,44 @@ export default function AuthNavActions({
 }: AuthNavActionsProps) {
   const router = useRouter();
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] =
+    useState(false);
+
+  const [isLoading, setIsLoading] =
+    useState(true);
+
+  const [menuOpen, setMenuOpen] =
+    useState(false);
+
+  const [unreadCount, setUnreadCount] =
+    useState(0);
+
+  async function loadUnreadCount() {
+    try {
+      const response = await fetch(
+        "http://localhost:4000/api/notifications/unread-count",
+        {
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        return;
+      }
+
+      const data =
+        await response.json();
+
+      setUnreadCount(
+        data.count
+      );
+    } catch (error) {
+      console.error(
+        "Could not load notification count:",
+        error
+      );
+    }
+  }
 
   useEffect(() => {
     async function checkAuth() {
@@ -33,7 +71,13 @@ export default function AuthNavActions({
           }
         );
 
-        setIsLoggedIn(response.ok);
+        setIsLoggedIn(
+          response.ok
+        );
+
+        if (response.ok) {
+          await loadUnreadCount();
+        }
       } catch {
         setIsLoggedIn(false);
       } finally {
@@ -43,6 +87,73 @@ export default function AuthNavActions({
 
     checkAuth();
   }, []);
+
+  useEffect(() => {
+    function handleNotificationsUpdated() {
+      if (isLoggedIn) {
+        loadUnreadCount();
+      }
+    }
+
+    window.addEventListener(
+      "notifications-updated",
+      handleNotificationsUpdated
+    );
+
+    return () => {
+      window.removeEventListener(
+        "notifications-updated",
+        handleNotificationsUpdated
+      );
+    };
+  }, [isLoggedIn]);
+
+  /*
+    Realtime update for NEW_BID / OUTBID.
+  */
+  useEffect(() => {
+    if (!isLoggedIn) {
+      return;
+    }
+
+    socket.connect();
+
+    function handleBidPlaced() {
+      loadUnreadCount();
+    }
+
+    socket.on(
+      "bid-placed",
+      handleBidPlaced
+    );
+
+    return () => {
+      socket.off(
+        "bid-placed",
+        handleBidPlaced
+      );
+    };
+  }, [isLoggedIn]);
+
+  /*
+    WON / AUCTION_SOLD are created
+    by the ended-auction checker,
+    so refresh periodically too.
+  */
+  useEffect(() => {
+    if (!isLoggedIn) {
+      return;
+    }
+
+    const interval =
+      setInterval(() => {
+        loadUnreadCount();
+      }, 60_000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isLoggedIn]);
 
   async function handleLogout() {
     try {
@@ -54,20 +165,63 @@ export default function AuthNavActions({
         }
       );
 
-      if (!response.ok) return;
+      if (!response.ok) {
+        return;
+      }
 
       setIsLoggedIn(false);
+      setUnreadCount(0);
       setMenuOpen(false);
 
       router.push("/");
       router.refresh();
     } catch (error) {
-      console.error("Logout failed:", error);
+      console.error(
+        "Logout failed:",
+        error
+      );
     }
   }
 
+  function NotificationBadge() {
+    if (unreadCount <= 0) {
+      return null;
+    }
+
+    return (
+      <span
+        className="
+          ml-auto
+          flex
+          h-5
+          min-w-5
+          items-center
+          justify-center
+          rounded-full
+          bg-[var(--bidora-accent)]
+          px-1.5
+          text-[10px]
+          font-bold
+          text-white
+        "
+      >
+        {unreadCount > 99
+          ? "99+"
+          : unreadCount}
+      </span>
+    );
+  }
+
   if (isLoading) {
-    return null;
+    return (
+      <div
+        className="
+          h-11
+          w-11
+          shrink-0
+        "
+      />
+    );
   }
 
   // MOBILE
@@ -180,11 +334,32 @@ export default function AuthNavActions({
           My Auctions
         </a>
 
+        <a
+          href="/profile/notifications"
+          className="
+            flex
+            items-center
+            gap-3
+            rounded-xl
+            px-3
+            py-3
+            font-medium
+            hover:bg-[var(--bidora-background)]
+          "
+        >
+          <Bell size={19} />
+          Notifications
+
+          <NotificationBadge />
+        </a>
+
         <div className="my-2 border-t border-[var(--bidora-border)]" />
 
         <button
           type="button"
-          onClick={handleLogout}
+          onClick={
+            handleLogout
+          }
           className="
             flex
             w-full
@@ -242,8 +417,13 @@ export default function AuthNavActions({
     <div className="relative">
       <button
         type="button"
-        onClick={() => setMenuOpen((prev) => !prev)}
+        onClick={() =>
+          setMenuOpen(
+            (prev) => !prev
+          )
+        }
         className="
+          relative
           flex
           h-11
           w-11
@@ -260,6 +440,31 @@ export default function AuthNavActions({
         aria-label="Open profile menu"
       >
         <User size={20} />
+
+        {unreadCount > 0 && (
+          <span
+            className="
+              absolute
+              -right-1
+              -top-1
+              flex
+              h-5
+              min-w-5
+              items-center
+              justify-center
+              rounded-full
+              bg-[var(--bidora-accent)]
+              px-1
+              text-[9px]
+              font-bold
+              text-white
+            "
+          >
+            {unreadCount > 99
+              ? "99+"
+              : unreadCount}
+          </span>
+        )}
       </button>
 
       {menuOpen && (
@@ -310,11 +515,23 @@ export default function AuthNavActions({
             My Auctions
           </a>
 
+          <a
+            href="/profile/notifications"
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-[var(--bidora-background)]"
+          >
+            <Bell size={17} />
+            Notifications
+
+            <NotificationBadge />
+          </a>
+
           <div className="my-2 border-t border-[var(--bidora-border)]" />
 
           <button
             type="button"
-            onClick={handleLogout}
+            onClick={
+              handleLogout
+            }
             className="
               flex
               w-full

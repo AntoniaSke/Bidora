@@ -1,7 +1,7 @@
 import Navbar from "@/src/components/layout/Navbar";
 import Footer from "@/src/components/layout/Footer";
 import SellAuctionForm from "@/src/components/sell/SellAuctionForm";
-import HowItWorks from "@/src/components/layout/HowItWorks";
+import HowItWorks from "@/src/components/home/HowItWorks";
 
 export default function SellPage() {
   return (

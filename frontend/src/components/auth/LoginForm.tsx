@@ -172,9 +172,9 @@ export default function LoginForm() {
                     </p>
                 )}
             </div>
-                {loginError && (
-            <div
-                className="
+            {loginError && (
+                <div
+                    className="
                 mt-5
                 rounded-xl
                 border
@@ -185,9 +185,9 @@ export default function LoginForm() {
                 text-sm
                 text-red-600
                 "
-            >
-                {loginError}
-            </div>
+                >
+                    {loginError}
+                </div>
             )}
 
             <button

@@ -3,8 +3,8 @@ import "./globals.css";
 import Navbar from "../components/layout/Navbar";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+import { Toaster } from "@/components/ui/sonner";
+const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
   title: "Bidora",
@@ -18,11 +18,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={cn("font-sans", geist.variable)}>
-        <head />
-        <body>
-     
-            {children}
-        </body>
+      <head />
+      <body>
+        <Toaster
+          position="top-right"
+          richColors
+        />
+        {children}
+      </body>
     </html>
   );
 }

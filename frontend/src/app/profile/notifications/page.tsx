@@ -1,19 +1,19 @@
 import Navbar from "@/src/components/layout/Navbar";
 import Footer from "@/src/components/layout/Footer";
 import AccountSection from "@/src/components/profile/AccountSection";
-import MyAuctionsList from "@/src/components/profile/MyAuctionsList";
+import NotificationsList from "@/src/components/profile/NotificationsList";
 
-export default function MyAuctionsPage() {
+export default function NotificationsPage() {
   return (
     <>
       <Navbar />
 
       <main className="min-h-screen">
         <AccountSection
-          title="My Auctions"
-          description="Manage the auctions you have created."
+          title="Notifications"
+          description="Stay updated on your auctions and bids."
         >
-          <MyAuctionsList />
+          <NotificationsList />
         </AccountSection>
       </main>
 

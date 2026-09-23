@@ -2,10 +2,11 @@
 
 import { ImagePlus } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-
+import { toast } from "sonner";
 
 const auctionSchema = z.object({
   title: z
@@ -31,10 +32,23 @@ const auctionSchema = z.object({
     .min(1, "Please select when the auction should end"),
 });
 
-type AuctionFormData = z.infer<typeof auctionSchema>;
+type AuctionFormData =
+  z.infer<typeof auctionSchema>;
 
 export default function SellAuctionForm() {
+  const router = useRouter();
 
+  const [submitError, setSubmitError] =
+    useState("");
+
+  const [isSubmitting, setIsSubmitting] =
+    useState(false);
+
+  const [imagePreview, setImagePreview] =
+    useState<string | null>(null);
+
+  const [imageFile, setImageFile] =
+    useState<File | null>(null);
 
   const {
     register,
@@ -44,21 +58,235 @@ export default function SellAuctionForm() {
     resolver: zodResolver(auctionSchema),
   });
 
-  function onSubmit(data: AuctionFormData) {
-    console.log(data);
+  async function uploadAuctionImage(
+    file: File
+  ): Promise<string> {
+    const signatureResponse = await fetch(
+      "http://localhost:4000/api/uploads/signature",
+      {
+        method: "POST",
+        credentials: "include",
+      }
+    );
+
+    if (signatureResponse.status === 401) {
+      router.push("/login");
+
+      throw new Error(
+        "You must be logged in to upload an image."
+      );
+    }
+
+    if (!signatureResponse.ok) {
+      throw new Error(
+        "Could not prepare image upload."
+      );
+    }
+
+    const {
+      timestamp,
+      signature,
+      folder,
+      cloudName,
+      apiKey,
+    } = await signatureResponse.json();
+
+    const formData = new FormData();
+
+    formData.append("file", file);
+    formData.append("api_key", apiKey);
+    formData.append(
+      "timestamp",
+      String(timestamp)
+    );
+    formData.append(
+      "signature",
+      signature
+    );
+    formData.append(
+      "folder",
+      folder
+    );
+
+    const uploadResponse = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    if (!uploadResponse.ok) {
+      throw new Error(
+        "Image upload failed."
+      );
+    }
+
+    const uploadResult =
+      await uploadResponse.json();
+
+    return uploadResult.secure_url;
   }
 
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  function handleImageChange(
+    event: React.ChangeEvent<HTMLInputElement>
+  ) {
+    const file =
+      event.target.files?.[0];
 
-  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
+    if (!file) {
+      return;
+    }
 
-    if (!file) return;
+    setSubmitError("");
 
-    const previewUrl = URL.createObjectURL(file);
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      setSubmitError(
+        "Please select a JPG, PNG or WebP image."
+      );
+
+      event.target.value = "";
+
+      return;
+    }
+
+    const maxSize =
+      5 * 1024 * 1024;
+
+    if (file.size > maxSize) {
+      setSubmitError(
+        "Image must be smaller than 5MB."
+      );
+
+      event.target.value = "";
+
+      return;
+    }
+
+    setImageFile(file);
+
+    const previewUrl =
+      URL.createObjectURL(file);
 
     setImagePreview(previewUrl);
   }
+
+  async function onSubmit(
+    data: AuctionFormData
+  ) {
+    try {
+      setSubmitError("");
+
+      if (!imageFile) {
+        setSubmitError(
+          "Please select an auction image."
+        );
+
+        return;
+      }
+
+      setIsSubmitting(true);
+
+      /*
+        1. Upload image to Cloudinary.
+        2. Receive the permanent secure URL.
+      */
+      const imageUrl =
+        await uploadAuctionImage(
+          imageFile
+        );
+
+      /*
+        3. Create auction in our backend.
+        PostgreSQL stores only the Cloudinary URL.
+      */
+      const response = await fetch(
+        "http://localhost:4000/api/auctions",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+
+          credentials: "include",
+
+          body: JSON.stringify({
+            title: data.title,
+            description:
+              data.description,
+            category:
+              data.category,
+
+            startingPrice:
+              Number(
+                data.startingPrice
+              ),
+
+            endsAt:
+              data.endDate,
+
+            image:
+              imageUrl,
+          }),
+        }
+      );
+
+      const result =
+        await response.json();
+
+      if (response.status === 401) {
+        router.push("/login");
+
+        return;
+      }
+
+      if (!response.ok) {
+        setSubmitError(
+          result.message ||
+          "Could not create auction."
+        );
+
+        return;
+      }
+      toast.success(
+        "Auction created successfully."
+      );
+      router.push(
+        "/profile/auctions"
+      );
+
+      router.refresh();
+    } catch (error) {
+      console.error(
+        "CREATE AUCTION ERROR:",
+        error
+      );
+
+      if (error instanceof Error) {
+        setSubmitError(
+          error.message
+        );
+      } else {
+        setSubmitError(
+          "Could not create auction."
+        );
+        toast.error(
+          "Could not create auction."
+        );
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
@@ -77,6 +305,7 @@ export default function SellAuctionForm() {
         {/* LEFT COLUMN */}
         <div className="space-y-6">
 
+          {/* TITLE */}
           <div>
             <label
               htmlFor="title"
@@ -91,19 +320,20 @@ export default function SellAuctionForm() {
               {...register("title")}
               placeholder="e.g. Vintage Canon Camera"
               className="
-                    mt-2
-                    w-full
-                    rounded-xl
-                    border
-                    border-[var(--bidora-border)]
-                    bg-white
-                    px-4
-                    py-3.5
-                    outline-none
-                    transition
-                    focus:border-[var(--bidora-primary)]
-                  "
+                mt-2
+                w-full
+                rounded-xl
+                border
+                border-[var(--bidora-border)]
+                bg-white
+                px-4
+                py-3.5
+                outline-none
+                transition
+                focus:border-[var(--bidora-primary)]
+              "
             />
+
             {errors.title && (
               <p className="mt-2 text-sm text-red-500">
                 {errors.title.message}
@@ -111,6 +341,7 @@ export default function SellAuctionForm() {
             )}
           </div>
 
+          {/* DESCRIPTION */}
           <div>
             <label
               htmlFor="description"
@@ -125,19 +356,19 @@ export default function SellAuctionForm() {
               placeholder="Describe the condition, details and anything buyers should know..."
               rows={6}
               className="
-                  mt-2
-                  w-full
-                  resize-none
-                  rounded-xl
-                  border
-                  border-[var(--bidora-border)]
-                  bg-white
-                  px-4
-                  py-3.5
-                  outline-none
-                  transition
-                  focus:border-[var(--bidora-primary)]
-                "
+                mt-2
+                w-full
+                resize-none
+                rounded-xl
+                border
+                border-[var(--bidora-border)]
+                bg-white
+                px-4
+                py-3.5
+                outline-none
+                transition
+                focus:border-[var(--bidora-primary)]
+              "
             />
 
             {errors.description && (
@@ -147,6 +378,7 @@ export default function SellAuctionForm() {
             )}
           </div>
 
+          {/* CATEGORY */}
           <div>
             <label
               htmlFor="category"
@@ -159,25 +391,45 @@ export default function SellAuctionForm() {
               id="category"
               {...register("category")}
               className="
-                    mt-2
-                    w-full
-                    rounded-xl
-                    border
-                    border-[var(--bidora-border)]
-                    bg-white
-                    px-4
-                    py-3.5
-                    outline-none
-                    focus:border-[var(--bidora-primary)]
-                  "
+                mt-2
+                w-full
+                rounded-xl
+                border
+                border-[var(--bidora-border)]
+                bg-white
+                px-4
+                py-3.5
+                outline-none
+                focus:border-[var(--bidora-primary)]
+              "
             >
-              <option value="">Select category</option>
-              <option value="Electronics">Electronics</option>
-              <option value="Fashion">Fashion</option>
-              <option value="Gaming">Gaming</option>
-              <option value="Collectibles">Collectibles</option>
-              <option value="Art">Art</option>
-              <option value="Home">Home</option>
+              <option value="">
+                Select category
+              </option>
+
+              <option value="Electronics">
+                Electronics
+              </option>
+
+              <option value="Fashion">
+                Fashion
+              </option>
+
+              <option value="Gaming">
+                Gaming
+              </option>
+
+              <option value="Collectibles">
+                Collectibles
+              </option>
+
+              <option value="Art">
+                Art
+              </option>
+
+              <option value="Home">
+                Home
+              </option>
             </select>
 
             {errors.category && (
@@ -192,7 +444,7 @@ export default function SellAuctionForm() {
         {/* RIGHT COLUMN */}
         <div className="space-y-6">
 
-          {/* IMAGE UPLOAD */}
+          {/* IMAGE */}
           <div>
             <p className="text-sm font-semibold text-[var(--bidora-text)]">
               Item image
@@ -224,7 +476,12 @@ export default function SellAuctionForm() {
                 <img
                   src={imagePreview}
                   alt="Auction preview"
-                  className="h-56 w-full rounded-xl object-cover"
+                  className="
+                    h-56
+                    w-full
+                    rounded-xl
+                    object-cover
+                  "
                 />
               ) : (
                 <>
@@ -238,7 +495,7 @@ export default function SellAuctionForm() {
                   </p>
 
                   <p className="mt-2 text-sm text-[var(--bidora-text-secondary)]">
-                    PNG or JPG
+                    JPG, PNG or WebP · max 5MB
                   </p>
                 </>
               )}
@@ -246,13 +503,20 @@ export default function SellAuctionForm() {
               <input
                 id="image"
                 type="file"
-                accept="image/png,image/jpeg"
-                onChange={handleImageChange}
+                accept="
+                  image/jpeg,
+                  image/png,
+                  image/webp
+                "
+                onChange={
+                  handleImageChange
+                }
                 className="hidden"
               />
             </label>
           </div>
 
+          {/* STARTING PRICE */}
           <div>
             <label
               htmlFor="startingPrice"
@@ -269,34 +533,42 @@ export default function SellAuctionForm() {
               <input
                 id="startingPrice"
                 type="number"
+                min="0.01"
                 step="0.01"
-                {...register("startingPrice", {
-                  valueAsNumber: true,
-                })}
+                {...register(
+                  "startingPrice",
+                  {
+                    valueAsNumber: true,
+                  }
+                )}
                 placeholder="0.00"
                 className="
-                    w-full
-                    rounded-xl
-                    border
-                    border-[var(--bidora-border)]
-                    bg-white
-                    py-3.5
-                    pl-8
-                    pr-4
-                    outline-none
-                    focus:border-[var(--bidora-primary)]
-                  "
+                  w-full
+                  rounded-xl
+                  border
+                  border-[var(--bidora-border)]
+                  bg-white
+                  py-3.5
+                  pl-8
+                  pr-4
+                  outline-none
+                  focus:border-[var(--bidora-primary)]
+                "
               />
-
-
             </div>
+
             {errors.startingPrice && (
               <p className="mt-2 text-sm text-red-500">
-                {errors.startingPrice.message}
+                {
+                  errors
+                    .startingPrice
+                    .message
+                }
               </p>
             )}
           </div>
 
+          {/* END DATE */}
           <div>
             <label
               htmlFor="endDate"
@@ -309,7 +581,9 @@ export default function SellAuctionForm() {
               <input
                 id="endDate"
                 type="datetime-local"
-                {...register("endDate")}
+                {...register(
+                  "endDate"
+                )}
                 className="
                   block
                   w-full
@@ -324,7 +598,11 @@ export default function SellAuctionForm() {
 
             {errors.endDate && (
               <p className="mt-2 text-sm text-red-500">
-                {errors.endDate.message}
+                {
+                  errors
+                    .endDate
+                    .message
+                }
               </p>
             )}
           </div>
@@ -332,50 +610,64 @@ export default function SellAuctionForm() {
         </div>
       </div>
 
-      {/* ACTIONS */}
-      <div className="mt-10 border-t border-[var(--bidora-border)] pt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* SUBMIT ERROR */}
+      {submitError && (
+        <div
+          className="
+            mt-6
+            rounded-xl
+            border
+            border-red-200
+            bg-red-50
+            px-4
+            py-3
+          "
+        >
+          <p className="text-sm font-medium text-red-600">
+            {submitError}
+          </p>
+        </div>
+      )}
 
+      {/* ACTIONS */}
+      <div
+        className="
+          mt-10
+          flex
+          flex-col
+          gap-4
+          border-t
+          border-[var(--bidora-border)]
+          pt-6
+          sm:flex-row
+          sm:items-center
+          sm:justify-between
+        "
+      >
         <p className="text-sm text-[var(--bidora-text-secondary)]">
-          You can review the auction before publishing.
+          Review the auction details before publishing.
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-3">
-
-          <button
-            type="button"
-            className="
-              rounded-xl
-              border
-              border-[var(--bidora-border)]
-              bg-white
-              px-6
-              py-3
-              font-semibold
-              text-[var(--bidora-text)]
-              transition
-              hover:border-[var(--bidora-primary)]
-            "
-          >
-            Save draft
-          </button>
-
-          <button
-            type="submit"
-            className="
-              rounded-xl
-              bg-[var(--bidora-accent)]
-              px-7
-              py-3
-              font-semibold
-              text-white
-              transition
-              hover:opacity-90
-            "
-          >
-            Continue
-          </button>
-
-        </div>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="
+            rounded-xl
+            bg-[var(--bidora-accent)]
+            px-7
+            py-3
+            font-semibold
+            text-white
+            transition
+            hover:opacity-90
+            disabled:cursor-not-allowed
+            disabled:opacity-60
+          "
+        >
+          {isSubmitting
+            ? "Creating..."
+            : "Create Auction"}
+        </button>
       </div>
     </form>
   );
