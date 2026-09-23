@@ -1,176 +1,192 @@
 # Bidora
 
-**Bidora** is a full-stack online auction marketplace where users can discover items, create auctions, manage their profile, save favourites and participate in bidding.
+Bidora is a full-stack online auction marketplace where users can create auctions, place bids, track bidding activity in real time and receive notifications about important auction events.
 
-The project is being built as a production-style full-stack application with a separate frontend, backend API and PostgreSQL database.
+The project was built as a full-stack portfolio application with a focus on modern web development, real-time interactions and backend data consistency.
 
-## Project structure
+## Overview
 
-```text
-Bidora/
-├── frontend/
-├── backend/
-└── README.md
-```
+Bidora allows users to:
 
-## Current project status
+- create an account
+- browse active auctions
+- search and filter auctions
+- create auctions
+- upload auction images
+- edit or delete eligible auctions
+- place bids
+- view bid history
+- save favourites
+- track auctions they participated in
+- receive real-time bidding updates
+- receive auction notifications
+- view winner and sold-auction results
 
-The main frontend foundation is complete and backend integration has started.
+## Tech Stack
 
-The project now supports a real authentication flow with PostgreSQL persistence.
-
-### Working end-to-end flows
-
-- User registration
-- Password hashing
-- User login
-- JWT creation
-- httpOnly cookie authentication
-- Protected authentication check
-- User profile loading
-- User profile updates
-- Logout
-- PostgreSQL persistence through Prisma
-
-## Frontend
-
-### Implemented
-
-- Responsive homepage
-- Auction browsing UI
-- Auction details pages
-- Sell Auction UI
-- Form validation
-- Login and registration
-- Authentication-aware UI
-- Editable profile
-- Favourites UI
-- My Bids UI
-- My Auctions UI
-- Responsive desktop and mobile layouts
-
-### Stack
-
-- Next.js 16
+### Frontend
+- Next.js
 - React
 - TypeScript
-- Tailwind CSS v4
+- Tailwind CSS
+- shadcn/ui
 - React Hook Form
 - Zod
-- shadcn/ui
+- Socket.io Client
+- Sonner
 - Lucide React
 
-## Backend
-
-### Implemented
-
-- Express REST API
-- PostgreSQL database
-- Prisma ORM
-- Zod backend validation
-- Auction endpoints
-- User model
-- Registration endpoint
-- Login endpoint
-- bcrypt password hashing
-- JWT authentication
-- httpOnly cookies
-- Authentication middleware
-- Protected user endpoint
-- Profile update endpoint
-- Logout endpoint
-- Organized backend architecture with routes, controllers, middleware and schemas
-
-### Stack
-
+### Backend
 - Node.js
 - Express
 - TypeScript
+- Prisma
 - PostgreSQL
-- Prisma 7
-- Zod
-- bcrypt
+- Socket.io
 - JWT
-- cookie-parser
-- cors
+- bcrypt
+- Zod
+- Cloudinary
 
 ## Architecture
 
 ```text
+Browser
+   │
+   │ REST API
+   ▼
 Next.js Frontend
-       ↓
-HTTP / REST API
-       ↓
+   │
+   │ HTTP + Socket.io
+   ▼
 Express Backend
-       ↓
-Authentication / Business Logic
-       ↓
-Prisma
-       ↓
+   │
+   ├── Authentication
+   ├── Auctions
+   ├── Bids
+   ├── Favourites
+   ├── Notifications
+   └── Upload signatures
+   │
+   ▼
 PostgreSQL
 ```
 
-## Authentication
+Auction images are stored in Cloudinary.
 
-Bidora currently uses:
+## Main Features
+
+### Authentication
+JWT-based authentication using HTTP-only cookies.
+
+### Auction Marketplace
+Browse, search and filter active auctions.
+
+### Auction Management
+Authenticated users can create auctions. Sellers can edit or delete auctions only before the first bid and before the auction ends.
+
+### Bidding
+Bidora prevents self-bidding, invalid bids and bidding on expired auctions. Bid placement uses transactions and conditional updates to protect against race conditions.
+
+### Real-Time Bidding
+Socket.io updates current bid, bid count, highest/outbid state and auction cards without refresh.
+
+### Bid History
+Each auction provides a bid history showing previous bids and users.
+
+### Favourites
+Users can save and remove favourite auctions.
+
+### Notifications
+Users receive notifications for new bids, being outbid, winning an auction and successful sales.
+
+### Auction Completion
+A backend checker determines winners and creates `WON` and `AUCTION_SOLD` notifications.
+
+### Image Uploads
+Auction images are uploaded to Cloudinary using signed upload requests.
+
+## Repository Structure
 
 ```text
-JWT
-+
-httpOnly cookies
+Bidora/
+├── frontend/
+│   ├── src/
+│   ├── public/
+│   └── README.md
+│
+├── backend/
+│   ├── src/
+│   ├── prisma/
+│   └── README.md
+│
+└── README.md
 ```
 
-The backend verifies the JWT through authentication middleware before allowing access to protected routes.
+## Getting Started
 
-## Current API
+### Backend
 
-```http
-GET   /api/health
-
-GET   /api/auctions
-GET   /api/auctions/:id
-POST  /api/auctions
-
-POST  /api/auth/register
-POST  /api/auth/login
-GET   /api/auth/me
-POST  /api/auth/logout
-
-PATCH /api/users/me
+```bash
+cd backend
+npm install
+npx prisma migrate dev
+npx prisma generate
+npm run dev
 ```
 
-## Current development focus
+Backend: `http://localhost:4000`
 
-The current focus is moving from UI/demo data to fully persistent marketplace functionality.
+### Frontend
 
-## Next major milestones
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-- Finalize navbar/account navigation
-- Connect auction frontend pages to PostgreSQL-backed API data
-- Connect Sell Auction to the authenticated user
-- Add User–Auction relationships
-- Add favourites
-- Add bid model and bid history
-- Add authorization for auction ownership
-- Add real-time bidding
-- Add real image uploads
-- Add notifications
-- Add auction winner logic
-- Add payments
-- Add protected frontend routes
-- Deploy frontend, backend and PostgreSQL/cloud infrastructure
+Frontend: `http://localhost:3000`
 
-## Planned infrastructure
+## Environment Variables
 
-Future deployment may include:
+```env
+DATABASE_URL=
+JWT_SECRET=
 
-- Docker
-- Ubuntu / Linux
-- Nginx
-- Cloudflare
-- Managed PostgreSQL
-- GitHub Actions CI/CD
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+```
 
-## Goal
+Do not commit real credentials.
 
-The goal of Bidora is to evolve into a complete full-stack auction platform with secure authentication, persistent marketplace data, user account management and real-time bidding.
+## Demo Data
+
+```bash
+cd backend
+npm run seed:auctions
+```
+
+## Key Engineering Decisions
+
+- HTTP-only cookie authentication
+- Prisma transactions for bid consistency
+- Concurrency-safe conditional bid updates
+- Shared Socket.io connection on the frontend
+- Notification deduplication for auction completion events
+
+## Future Improvements
+
+- payments
+- dedicated worker for auction-closing jobs
+- email notifications
+- user ratings
+- seller profiles
+- pagination
+- Cloudinary asset cleanup when auctions are removed
+- automated tests
+- production deployment
+
+## Author
+
+Built as a full-stack web development portfolio project.
