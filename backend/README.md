@@ -1,177 +1,190 @@
 # Bidora Backend
 
-Backend API for **Bidora**, a full-stack online auction marketplace.
+The Bidora backend is a REST API and real-time event server built with Node.js, Express, TypeScript, Prisma and PostgreSQL.
 
-## Current status
+It provides authentication, auction management, bidding, favourites, notifications, Cloudinary upload signatures and Socket.io events.
 
-The backend is actively under development and now includes authentication, PostgreSQL persistence and user profile management.
+## Features
 
-## Implemented
-
-- Node.js backend setup
-- Express server
-- TypeScript configuration
-- Development server with `tsx`
-- CORS configuration
-- Cookie parsing
-- Zod request validation
-- PostgreSQL local database
-- Prisma 7 integration
-- Prisma PostgreSQL adapter
-- Prisma migrations
-- Prisma Studio
-- Auction model
-- User model
-- Auction API endpoints
-- User registration
-- Password hashing with bcrypt
-- User login
+- User registration and login
 - JWT authentication
-- httpOnly cookie authentication
-- Authentication middleware
-- Protected `/api/auth/me` route
-- Logout endpoint
-- User profile update endpoint
-- HTTP status handling
-- Backend code split into routes, controllers, middleware, schemas and Prisma utilities
+- HTTP-only cookie sessions
+- Profile management
+- Auction CRUD
+- Seller ownership validation
+- Bid placement
+- Concurrency-safe bidding
+- Bid history
+- User bid history
+- Favourites
+- Notifications
+- Auction winner detection
+- Auction sold notifications
+- Real-time bidding with Socket.io
+- Cloudinary signed uploads
+- PostgreSQL persistence
+- Prisma ORM
 
-## Technologies
+## Tech Stack
 
 - Node.js
 - Express
 - TypeScript
 - PostgreSQL
-- Prisma 7
-- Zod
+- Prisma ORM
+- Socket.io
+- JWT
 - bcrypt
-- JSON Web Tokens
+- Zod
 - cookie-parser
-- cors
-- tsx
+- CORS
+- Cloudinary
 
-## Current API
+## API Base URL
+
+```text
+http://localhost:4000
+```
+
+## Main API Routes
 
 ### Health
-
-```http
-GET /api/health
-```
-
-### Auctions
-
-```http
-GET  /api/auctions
-GET  /api/auctions/:id
-POST /api/auctions
-```
+`GET /api/health`
 
 ### Authentication
-
-```http
-POST /api/auth/register
-POST /api/auth/login
-GET  /api/auth/me
-POST /api/auth/logout
-```
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+- `POST /api/auth/logout`
 
 ### Users
+- `PATCH /api/users/me`
 
-```http
-PATCH /api/users/me
+### Auctions
+- `GET /api/auctions`
+- `GET /api/auctions/mine`
+- `GET /api/auctions/:id`
+- `POST /api/auctions`
+- `PATCH /api/auctions/:id`
+- `DELETE /api/auctions/:id`
+
+### Bids
+- `POST /api/bids/auctions/:id`
+- `GET /api/bids/mine`
+- `GET /api/bids/auctions/:id`
+
+### Favourites
+- `GET /api/favourites`
+- `POST /api/favourites/:auctionId`
+- `DELETE /api/favourites/:auctionId`
+
+### Notifications
+- `GET /api/notifications`
+- `GET /api/notifications/unread-count`
+- `PATCH /api/notifications/:id/read`
+- `PATCH /api/notifications/read-all`
+
+### Uploads
+- `POST /api/uploads/signature`
+
+## Authentication
+
+Users are authenticated using JWT tokens stored in HTTP-only cookies.
+
+Protected routes use authentication middleware before controller execution.
+
+## Auction Rules
+
+A seller can edit or delete an auction only if:
+
+- the auction has not ended
+- no bids have been placed
+
+Sellers cannot bid on their own auctions.
+
+Ended auctions are excluded from the public active auction listing.
+
+## Bidding
+
+Bid placement uses Prisma transactions.
+
+A bid must:
+
+- belong to an active auction
+- be higher than the current bid
+- not be placed by the auction seller
+
+The auction update is performed conditionally so that concurrent bids cannot overwrite each other incorrectly.
+
+Only successful bids are stored in bid history.
+
+## Real-Time Events
+
+Socket.io runs on the same HTTP server as Express.
+
+When a successful bid is placed, the backend emits `bid-placed`.
+
+The frontend uses this event to update auction data without refreshing.
+
+## Notifications
+
+Notifications are created for:
+- `NEW_BID`
+- `OUTBID`
+- `WON`
+- `AUCTION_SOLD`
+
+Auction-ending notifications use a unique `dedupeKey` to prevent duplicates.
+
+## Auction Ending Processing
+
+A backend process periodically checks ended auctions, finds the highest bid, determines the winner, and creates winner and seller notifications.
+
+## Cloudinary
+
+The backend generates signed Cloudinary upload parameters. The Cloudinary API secret is never exposed to the frontend.
+
+## Database
+
+Main Prisma models:
+- User
+- Auction
+- Bid
+- Favourite
+- Notification
+
+## Environment Variables
+
+```env
+DATABASE_URL=
+JWT_SECRET=
+
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
 ```
 
-## Authentication flow
+Never commit real secrets to source control.
 
-```text
-Register
-  ↓
-Validate input
-  ↓
-Hash password with bcrypt
-  ↓
-Store user in PostgreSQL
+## Running the Backend
 
-Login
-  ↓
-Validate credentials
-  ↓
-Compare password hash
-  ↓
-Create JWT
-  ↓
-Store JWT in httpOnly cookie
-
-Protected request
-  ↓
-Read auth cookie
-  ↓
-Verify JWT
-  ↓
-Attach authenticated user to request
-  ↓
-Continue to protected route
+```bash
+npm install
+npx prisma migrate dev
+npx prisma generate
+npm run dev
 ```
 
-## Database models
+## Seed Demo Auctions
 
-### User
-
-Includes:
-
-- id
-- username
-- email
-- hashed password
-- optional name
-- phone
-- address
-- city
-- postal code
-- country
-- bio
-- createdAt
-- updatedAt
-
-### Auction
-
-Includes:
-
-- id
-- title
-- description
-- category
-- starting price
-- current bid
-- bid count
-- image
-- auction end date
-- seller
-- createdAt
-
-## Project structure
-
-```text
-src/
-├── controllers/
-├── routes/
-├── middleware/
-├── schemas/
-├── lib/
-├── types/
-└── server.ts
+```bash
+npm run seed:auctions
 ```
 
-## Next steps
+This creates demo auctions using a dedicated demo seller without removing normal users' auctions.
 
-- Finalize controller/route separation
-- Replace remaining temporary auction logic with authenticated user relations
-- Connect Sell Auction to the logged-in user
-- Add proper User–Auction relationships
-- Add favourites relation
-- Add bid model and bidding endpoints
-- Add authorization checks for auction ownership
-- Add protected seller operations
-- Add centralized error handling
-- Improve environment configuration
-- Prepare for cloud PostgreSQL
-- Add real-time bidding with WebSockets / Socket.IO
+## Prisma Studio
+
+```bash
+npx prisma studio
+```
