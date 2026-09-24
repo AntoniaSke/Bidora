@@ -158,7 +158,6 @@ CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
 ```
 
-Do not commit real credentials.
 
 ## Demo Data
 
