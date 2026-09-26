@@ -28,7 +28,7 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-const PORT = 4000;
+const PORT = Number(process.env.PORT) || 4000;
 
 /*
   Δημιουργούμε HTTP server
