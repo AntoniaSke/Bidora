@@ -1,10 +1,9 @@
-import { API_URL } from "@/lib/api";
 import { io } from "socket.io-client";
 
-export const socket = io(
-  `${API_URL}`,
-  {
-    withCredentials: true,
-    autoConnect: false,
-  }
-);
+const SOCKET_URL =
+  process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:4000";
+
+export const socket = io(SOCKET_URL, {
+  withCredentials: true,
+  autoConnect: false,
+});
