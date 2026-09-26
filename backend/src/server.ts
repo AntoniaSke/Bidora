@@ -16,11 +16,14 @@ import {
 } from "./services/auctionNotificationService.js";
 import { setSocketServer } from "./lib/socket.js";
 
+const FRONTEND_URL =
+  process.env.FRONTEND_URL || "http://localhost:3000";
+
 const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: FRONTEND_URL,
     credentials: true,
   })
 );
@@ -41,7 +44,7 @@ const server = http.createServer(app);
 */
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: FRONTEND_URL,
     credentials: true,
   },
 });

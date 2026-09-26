@@ -7,6 +7,9 @@ import {
   loginSchema,
 } from "../schemas/authSchema.js";
 
+
+const isProduction = process.env.NODE_ENV === "production";
+
 export async function registerUser(req: Request, res: Response) {
   const result = registerSchema.safeParse(req.body);
 
@@ -92,12 +95,12 @@ export async function loginUser(req: Request, res: Response) {
     }
   );
 
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: false,
-    sameSite: "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
+ res.cookie("token", token, {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: isProduction ? "none" : "lax",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+});
 
   res.status(200).json({
     message: "Login successful",
@@ -139,10 +142,10 @@ export async function getCurrentUser(req: Request, res: Response) {
 
 export function logoutUser(req: Request, res: Response) {
   res.clearCookie("token", {
-    httpOnly: true,
-    secure: false,
-    sameSite: "lax",
-  });
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: isProduction ? "none" : "lax",
+});
 
   res.status(200).json({
     message: "Logout successful",
