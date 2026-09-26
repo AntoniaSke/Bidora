@@ -1,33 +1,42 @@
-# Bidora Frontend
+# BIDORA Frontend
 
-Bidora is a modern auction marketplace frontend built with Next.js, React, TypeScript and Tailwind CSS.
+The frontend of **BIDORA**, a full-stack online auction marketplace built with **Next.js, React, TypeScript and Tailwind CSS**.
 
-The frontend provides the user-facing experience for browsing auctions, placing bids, managing favourites, creating auctions and tracking bidding activity in real time.
+It provides the user-facing experience for discovering auctions, placing bids, managing listings and favourites, and following auction activity in real time.
+
+## Live Demo
+
+**Production:**  
+https://bidora-ashen.vercel.app
+
+> The backend is hosted on Render's free tier, so the first request after a period of inactivity may take a few seconds.
+
+---
 
 ## Features
 
 - Browse active auctions
-- Search auctions by title or category
-- Filter auctions by category
-- View auction details
-- Real-time bidding with Socket.io
-- Live current bid and bid count updates
-- Highest bid / outbid status
-- Bid history
-- Add and remove favourites
+- Search and filter auctions
+- View detailed auction information
 - Create new auctions
-- Edit auctions before the first bid
-- Delete auctions before the first bid
-- User profile management
-- My Auctions page
-- My Bids page
-- Favourites page
-- Notifications page
-- Unread notification badge
-- Winner and sold-auction notifications
-- Responsive design
-- Cloudinary image uploads
-- Toast feedback with Sonner
+- Edit or delete eligible auctions
+- Upload auction images
+- Place bids
+- View bid history
+- Receive real-time bid updates
+- Track highest-bidder / outbid state
+- Add and remove favourites
+- Manage user profile
+- View My Auctions
+- View My Bids
+- View Favourites
+- View Notifications
+- Track unread notifications
+- View auction winner and sale results
+- Responsive interface
+- Toast feedback and error handling
+
+---
 
 ## Tech Stack
 
@@ -38,46 +47,56 @@ The frontend provides the user-facing experience for browsing auctions, placing 
 - shadcn/ui
 - React Hook Form
 - Zod
-- Socket.io Client
+- Socket.IO Client
 - Lucide React
 - Sonner
+
+---
 
 ## Project Structure
 
 ```text
-src/
-├── app/
-│   ├── auctions/
-│   ├── login/
-│   ├── register/
-│   ├── sell/
-│   ├── profile/
+frontend/
+├── src/
+│   ├── app/
 │   │   ├── auctions/
-│   │   ├── bids/
-│   │   ├── favourites/
-│   │   └── notifications/
-│   ├── globals.css
-│   ├── layout.tsx
-│   └── page.tsx
+│   │   ├── login/
+│   │   ├── register/
+│   │   ├── sell/
+│   │   ├── profile/
+│   │   │   ├── auctions/
+│   │   │   ├── bids/
+│   │   │   ├── favourites/
+│   │   │   └── notifications/
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   │
+│   └── components/
+│       ├── auctions/
+│       ├── auth/
+│       ├── home/
+│       ├── layout/
+│       ├── profile/
+│       ├── sell/
+│       └── ui/
 │
-├── components/
-│   ├── auctions/
-│   ├── auth/
-│   ├── home/
-│   ├── layout/
-│   ├── profile/
-│   ├── sell/
-│   └── ui/
+├── lib/
+│   ├── api.ts
+│   └── socket.ts
 │
-└── lib/
-    └── socket.ts
+├── public/
+├── next.config.ts
+└── package.json
 ```
+
+---
 
 ## Authentication
 
-Authentication is handled by the backend using JWT tokens stored in HTTP-only cookies.
+Authentication is handled by the BIDORA backend using **JWT tokens stored in HTTP-only cookies**.
 
-Frontend API requests that require authentication use:
+Authenticated requests include credentials:
 
 ```ts
 fetch(url, {
@@ -85,38 +104,104 @@ fetch(url, {
 });
 ```
 
+In production, REST API requests are routed through the Next.js application rather than directly from the browser to the backend.
+
+This allows the frontend to use same-origin `/api/*` requests while Next.js forwards them to the Express API.
+
+```text
+Browser
+   │
+   │ /api/*
+   ▼
+Next.js / Vercel
+   │
+   │ rewrite
+   ▼
+Express / Render
+```
+
+---
+
+## API Communication
+
+API URLs are centralized through `lib/api.ts`.
+
+During local development, requests are sent directly to the local Express server:
+
+```text
+http://localhost:4000
+```
+
+In production, client-side requests use relative `/api/*` URLs and are forwarded to the backend through **Next.js rewrites**.
+
+Server-side components that require direct backend access use a server-only backend URL.
+
+This keeps environment-specific API configuration outside individual components.
+
+---
+
 ## Real-Time Bidding
 
-Bidora uses Socket.io to update auction data in real time.
+BIDORA uses **Socket.IO** for real-time auction updates.
 
-When a user places a bid, the backend emits a `bid-placed` event.
+Unlike REST API requests, the Socket.IO client maintains a direct connection with the Express backend.
 
-The frontend listens for this event and updates:
+```text
+Browser ───── Socket.IO ─────► Express / Render
+```
+
+When a bid is successfully placed, the backend emits a `bid-placed` event.
+
+The frontend listens for auction events and updates relevant UI state, including:
 
 - current bid
 - bid count
-- highest bidder state
+- highest-bidder state
 - outbid state
-- auction cards
+- auction card information
 
-This allows multiple users to interact with the same auction without refreshing the page.
+This allows multiple users to follow bidding activity without manually refreshing the page.
+
+---
 
 ## Notifications
 
-Users receive notifications for events such as:
+Users receive notifications for important auction events such as:
 
-- receiving a new bid on one of their auctions
+- new bids on their auctions
 - being outbid
 - winning an auction
 - successfully selling an auction
 
-Unread notifications are displayed in the profile navigation and account dropdown.
+Unread notification counts are displayed in the profile navigation and account interface.
+
+---
 
 ## Image Uploads
 
-Auction images are uploaded directly from the browser to Cloudinary using signed upload parameters generated by the backend.
+Auction images are uploaded directly from the browser to **Cloudinary**.
 
-Supported formats:
+The frontend first requests signed upload parameters from the backend and then uploads the image to Cloudinary.
+
+```text
+Browser
+   │
+   │ request upload signature
+   ▼
+BIDORA Backend
+   │
+   │ signed parameters
+   ▼
+Browser
+   │
+   │ image upload
+   ▼
+Cloudinary
+```
+
+Cloudinary API secrets remain on the backend and are never exposed to the client.
+
+Supported image formats include:
 
 - JPG
 - PNG
@@ -126,54 +211,110 @@ Maximum image size:
 
 - 5 MB
 
+---
+
 ## Forms and Validation
 
-Auction creation and editing use:
+Forms use:
 
 - React Hook Form
 - Zod
-- zodResolver
+- `zodResolver`
 
-Validation is performed before requests are sent to the backend.
+Client-side validation provides immediate feedback before requests are sent to the backend.
 
-## Running the Frontend
+The backend also performs its own validation and remains responsible for enforcing application rules.
 
-Install dependencies:
+---
 
-```bash
-npm install
-```
+## Environment Variables
 
-Start the development server:
+### Local Development
 
-```bash
-npm run dev
-```
-
-The application will run at:
-
-```text
-http://localhost:3000
-```
-
-## Backend
-
-The frontend expects the Bidora backend to be running at:
+The frontend defaults to the local backend:
 
 ```text
 http://localhost:4000
 ```
 
-## Status
+### Production
 
-Bidora is currently under active development.
+The production deployment uses:
 
-Current implemented areas include:
+```env
+BACKEND_URL=
+NEXT_PUBLIC_SOCKET_URL=
+```
+
+`BACKEND_URL` is used for server-side communication with the Express API.
+
+`NEXT_PUBLIC_SOCKET_URL` provides the backend address required by the browser for the Socket.IO connection.
+
+---
+
+## Running Locally
+
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Start the BIDORA backend
+
+The backend should be available at:
+
+```text
+http://localhost:4000
+```
+
+### 3. Start the frontend
+
+```bash
+npm run dev
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+---
+
+## Production Deployment
+
+The frontend is deployed on **Vercel**.
+
+Production architecture:
+
+```text
+                    REST
+Browser ─────► Next.js / Vercel ─────► Express / Render
+   │
+   │              Socket.IO
+   └─────────────────────────────────► Express / Render
+```
+
+The backend communicates with a PostgreSQL database hosted on Neon, while auction images are stored in Cloudinary.
+
+---
+
+## Current Status
+
+BIDORA currently includes the complete core auction workflow:
 
 - authentication
-- auction CRUD
+- auction creation and management
+- search and filtering
 - favourites
 - bidding
+- bid history
 - real-time updates
+- profile management
 - notifications
+- auction completion
 - Cloudinary image uploads
+- production deployment
+
+Future improvements may include automated testing, pagination, email notifications, payments, seller ratings and additional monitoring.
