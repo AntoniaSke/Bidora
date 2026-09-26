@@ -1,5 +1,7 @@
 "use client";
 
+import { API_URL } from "@/lib/api";
+
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ImagePlus } from "lucide-react";
@@ -84,7 +86,7 @@ export default function EditAuctionPage() {
         async function loadAuction() {
             try {
                 const response = await fetch(
-                    `http://localhost:4000/api/auctions/${auctionId}`
+                    `${API_URL}/api/auctions/${auctionId}`
                 );
 
                 if (!response.ok) {
@@ -156,7 +158,7 @@ export default function EditAuctionPage() {
     ): Promise<string> {
         const signatureResponse =
             await fetch(
-                "http://localhost:4000/api/uploads/signature",
+                `${API_URL}/api/uploads/signature`,
                 {
                     method: "POST",
                     credentials: "include",
@@ -327,7 +329,7 @@ export default function EditAuctionPage() {
 
             const response =
                 await fetch(
-                    `http://localhost:4000/api/auctions/${auctionId}`,
+                    `${API_URL}/api/auctions/${auctionId}`,
                     {
                         method: "PATCH",
 

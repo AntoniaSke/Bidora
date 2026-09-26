@@ -1,5 +1,7 @@
 "use client";
 
+import { API_URL } from "@/lib/api";
+
 import {
   useEffect,
   useMemo,
@@ -93,18 +95,18 @@ export default function AuctionExplorer() {
           userResponse,
         ] = await Promise.all([
           fetch(
-            "http://localhost:4000/api/auctions"
+            `${API_URL}/api/auctions`
           ),
 
           fetch(
-            "http://localhost:4000/api/favourites",
+            `${API_URL}/api/favourites`,
             {
               credentials: "include",
             }
           ),
 
           fetch(
-            "http://localhost:4000/api/auth/me",
+            `${API_URL}/api/auth/me`,
             {
               credentials: "include",
             }

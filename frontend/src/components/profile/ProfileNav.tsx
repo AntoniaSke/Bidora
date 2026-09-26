@@ -1,5 +1,7 @@
 "use client";
 
+import { API_URL } from "@/lib/api";
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -38,7 +40,7 @@ export default function ProfileNav() {
   async function loadUnreadCount() {
     try {
       const response = await fetch(
-        "http://localhost:4000/api/notifications/unread-count",
+        `${API_URL}/api/notifications/unread-count`,
         {
           credentials: "include",
         }

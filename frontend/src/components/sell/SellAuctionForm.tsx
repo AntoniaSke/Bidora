@@ -1,5 +1,7 @@
 "use client";
 
+import { API_URL } from "@/lib/api";
+
 import { ImagePlus } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -62,7 +64,7 @@ export default function SellAuctionForm() {
     file: File
   ): Promise<string> {
     const signatureResponse = await fetch(
-      "http://localhost:4000/api/uploads/signature",
+      `${API_URL}/api/uploads/signature`,
       {
         method: "POST",
         credentials: "include",
@@ -207,7 +209,7 @@ export default function SellAuctionForm() {
         PostgreSQL stores only the Cloudinary URL.
       */
       const response = await fetch(
-        "http://localhost:4000/api/auctions",
+        `${API_URL}/api/auctions`,
         {
           method: "POST",
 

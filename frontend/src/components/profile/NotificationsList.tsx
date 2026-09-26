@@ -1,5 +1,7 @@
 "use client";
 
+import { API_URL } from "@/lib/api";
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { CheckCheck } from "lucide-react";
@@ -36,7 +38,7 @@ export default function NotificationsList() {
     async function loadNotifications() {
       try {
         const response = await fetch(
-          "http://localhost:4000/api/notifications",
+          `${API_URL}/api/notifications`,
           {
             credentials: "include",
           }
@@ -89,7 +91,7 @@ export default function NotificationsList() {
 
     try {
       const response = await fetch(
-        `http://localhost:4000/api/notifications/${notificationId}/read`,
+        `${API_URL}/api/notifications/${notificationId}/read`,
         {
           method: "PATCH",
           credentials: "include",
@@ -134,7 +136,7 @@ export default function NotificationsList() {
       setIsMarkingAll(true);
 
       const response = await fetch(
-        "http://localhost:4000/api/notifications/read-all",
+        `${API_URL}/api/notifications/read-all`,
         {
           method: "PATCH",
           credentials: "include",

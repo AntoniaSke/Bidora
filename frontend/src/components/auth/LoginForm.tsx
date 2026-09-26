@@ -1,5 +1,7 @@
 "use client";
 
+import { API_URL } from "@/lib/api";
+
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,7 +37,7 @@ export default function LoginForm() {
 
         try {
             const response = await fetch(
-                "http://localhost:4000/api/auth/login",
+                `${API_URL}/api/auth/login`,
                 {
                     method: "POST",
                     headers: {

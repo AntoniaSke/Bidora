@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import { socket } from "@/lib/socket";
+import { API_URL } from "@/lib/api";
 
 type AuthNavActionsProps = {
   mobile?: boolean;
@@ -36,8 +37,7 @@ export default function AuthNavActions({
 
   async function loadUnreadCount() {
     try {
-      const response = await fetch(
-        "http://localhost:4000/api/notifications/unread-count",
+      const response = await fetch(`${API_URL}/api/notifications/unread-count`,
         {
           credentials: "include",
         }
@@ -65,7 +65,7 @@ export default function AuthNavActions({
     async function checkAuth() {
       try {
         const response = await fetch(
-          "http://localhost:4000/api/auth/me",
+          `${API_URL}/api/auth/me`,
           {
             credentials: "include",
           }
@@ -158,7 +158,7 @@ export default function AuthNavActions({
   async function handleLogout() {
     try {
       const response = await fetch(
-        "http://localhost:4000/api/auth/logout",
+        `${API_URL}/api/auth/logout`,
         {
           method: "POST",
           credentials: "include",

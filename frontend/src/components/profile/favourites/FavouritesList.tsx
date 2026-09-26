@@ -1,5 +1,7 @@
 "use client";
 
+import { API_URL } from "@/lib/api";
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -34,7 +36,7 @@ export default function FavouritesList() {
     async function loadFavourites() {
       try {
         const response = await fetch(
-          "http://localhost:4000/api/favourites",
+          `${API_URL}/api/favourites`,
           {
             credentials: "include",
           }

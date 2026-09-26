@@ -1,5 +1,7 @@
 "use client";
 
+import { API_URL } from "@/lib/api";
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -42,7 +44,7 @@ export default function MyAuctionsList() {
     async function loadMyAuctions() {
       try {
         const response = await fetch(
-          "http://localhost:4000/api/auctions/mine",
+          `${API_URL}/api/auctions/mine`,
           {
             credentials: "include",
           }

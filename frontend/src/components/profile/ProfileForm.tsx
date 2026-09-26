@@ -1,5 +1,7 @@
 "use client";
 
+import { API_URL } from "@/lib/api";
+
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -52,7 +54,7 @@ export default function ProfileForm() {
     async function loadProfile() {
       try {
         const response = await fetch(
-          "http://localhost:4000/api/auth/me",
+          `${API_URL}/api/auth/me`,
           {
             credentials: "include",
           }
@@ -93,7 +95,7 @@ export default function ProfileForm() {
 
     try {
       const response = await fetch(
-        "http://localhost:4000/api/users/me",
+        `${API_URL}/api/users/me`,
         {
           method: "PATCH",
           headers: {

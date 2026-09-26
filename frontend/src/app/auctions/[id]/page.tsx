@@ -1,3 +1,4 @@
+import { API_URL } from "@/lib/api";
 import Navbar from "../../../components/layout/Navbar";
 import Footer from "../../../components/layout/Footer";
 import BidPanel from "../../../components/auctions/BidPanel";
@@ -38,7 +39,7 @@ export default async function AuctionPage({
   const { id } = await params;
 
   const response = await fetch(
-    `http://localhost:4000/api/auctions/${id}`,
+    `${API_URL}/api/auctions/${id}`,
     {
       cache: "no-store",
     }

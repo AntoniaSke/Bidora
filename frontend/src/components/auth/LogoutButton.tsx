@@ -1,5 +1,7 @@
 "use client";
 
+import { API_URL } from "@/lib/api";
+
 import { LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -9,7 +11,7 @@ export default function LogoutButton() {
   async function handleLogout() {
     try {
       const response = await fetch(
-        "http://localhost:4000/api/auth/logout",
+        `${API_URL}/api/auth/logout`,
         {
           method: "POST",
           credentials: "include",

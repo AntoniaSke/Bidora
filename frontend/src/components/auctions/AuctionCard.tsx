@@ -1,5 +1,7 @@
 "use client";
 
+import { API_URL } from "@/lib/api";
+
 import { useEffect, useState } from "react";
 import { Heart } from "lucide-react";
 import Link from "next/link";
@@ -194,7 +196,7 @@ export default function AuctionCard({
     try {
       const response =
         await fetch(
-          `http://localhost:4000/api/favourites/${id}`,
+          `${API_URL}/api/favourites/${id}`,
           {
             method: favourite
               ? "DELETE"
@@ -259,7 +261,7 @@ export default function AuctionCard({
 
       const response =
         await fetch(
-          `http://localhost:4000/api/auctions/${id}`,
+          `${API_URL}/api/auctions/${id}`,
           {
             method: "DELETE",
             credentials:

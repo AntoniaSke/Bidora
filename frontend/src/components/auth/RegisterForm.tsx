@@ -1,5 +1,7 @@
 "use client";
 
+import { API_URL } from "@/lib/api";
+
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -48,7 +50,7 @@ export default function RegisterForm() {
     async function onSubmit(data: RegisterFormData) {
         try {
             const response = await fetch(
-                "http://localhost:4000/api/auth/register",
+                `${API_URL}/api/auth/register`,
                 {
                     method: "POST",
                     headers: {

@@ -1,5 +1,7 @@
 "use client";
 
+import { API_URL } from "@/lib/api";
+
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 
@@ -41,7 +43,7 @@ export default function BidHistoryModal({
         setError("");
 
         const response = await fetch(
-          `http://localhost:4000/api/bids/auctions/${auctionId}`
+          `${API_URL}/api/bids/auctions/${auctionId}`
         );
 
         if (!response.ok) {

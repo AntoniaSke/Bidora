@@ -1,5 +1,7 @@
 "use client";
 
+import { API_URL } from "@/lib/api";
+
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import { toast } from "sonner";
@@ -94,7 +96,7 @@ export default function BidPanel({
       try {
         const userResponse =
           await fetch(
-            "http://localhost:4000/api/auth/me",
+            `${API_URL}/api/auth/me`,
             {
               credentials: "include",
             }
@@ -118,7 +120,7 @@ export default function BidPanel({
 
         const bidsResponse =
           await fetch(
-            "http://localhost:4000/api/bids/mine",
+            `${API_URL}/api/bids/mine`,
             {
               credentials: "include",
             }
@@ -264,7 +266,7 @@ export default function BidPanel({
   */
   useEffect(() => {
     const socket = io(
-      "http://localhost:4000",
+      `${API_URL}`,
       {
         withCredentials: true,
       }
@@ -427,7 +429,7 @@ export default function BidPanel({
 
       const response =
         await fetch(
-          `http://localhost:4000/api/bids/auctions/${auctionId}`,
+          `${API_URL}/api/bids/auctions/${auctionId}`,
           {
             method: "POST",
 
