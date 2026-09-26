@@ -70,11 +70,11 @@ const auctions = [
     endsAt: hoursFromNow(28),
   },
   {
-    title: "Apple Watch",
+    title: "Apple Watch Series 9",
     description:
       "Apple Watch in excellent working condition with charging cable and sport band included.",
     category: "Electronics",
-    startingPrice: 140,
+    startingPrice: 180,
     image:
       "https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d",
     endsAt: hoursFromNow(32),
@@ -129,12 +129,89 @@ const auctions = [
       "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5",
     endsAt: hoursFromNow(72),
   },
+  {
+    title: "Nintendo Switch OLED",
+    description:
+      "Nintendo Switch OLED console with dock and Joy-Con controllers, in excellent condition.",
+    category: "Gaming",
+    startingPrice: 210,
+    image:
+      "https://images.unsplash.com/photo-1578303512597-81e6cc155b3e",
+    endsAt: hoursFromNow(16),
+  },
+  {
+    title: "Classic Wristwatch",
+    description:
+      "Elegant classic wristwatch with stainless steel case and leather strap.",
+    category: "Fashion",
+    startingPrice: 95,
+    image:
+      "https://images.unsplash.com/photo-1524805444758-089113d48a6d",
+    endsAt: hoursFromNow(30),
+  },
+  {
+    title: "Bluetooth Speaker",
+    description:
+      "Portable Bluetooth speaker with strong bass and long battery life.",
+    category: "Electronics",
+    startingPrice: 40,
+    image:
+      "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1",
+    endsAt: hoursFromNow(36),
+  },
+  {
+    title: "Ceramic Vase",
+    description:
+      "Handcrafted ceramic vase with a clean contemporary design for modern interiors.",
+    category: "Home",
+    startingPrice: 30,
+    image:
+      "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6",
+    endsAt: hoursFromNow(44),
+  },
+  {
+    title: "Vintage Typewriter",
+    description:
+      "Decorative vintage typewriter in good condition, ideal for collectors or home decor.",
+    category: "Collectibles",
+    startingPrice: 120,
+    image:
+      "https://images.unsplash.com/photo-1517841905240-472988babdf9",
+    endsAt: hoursFromNow(58),
+  },
+  {
+    title: "Gaming Mouse",
+    description:
+      "Lightweight high-precision gaming mouse with programmable buttons and RGB lighting.",
+    category: "Gaming",
+    startingPrice: 35,
+    image:
+      "https://images.unsplash.com/photo-1527814050087-3793815479db",
+    endsAt: hoursFromNow(26),
+  },
+  {
+    title: "Minimalist Coffee Table",
+    description:
+      "Modern coffee table with clean lines, ideal for contemporary living rooms.",
+    category: "Home",
+    startingPrice: 85,
+    image:
+      "https://images.unsplash.com/photo-1532372320572-cda25653a694",
+    endsAt: hoursFromNow(70),
+  },
+  {
+    title: "Limited Edition Poster",
+    description:
+      "Limited edition art poster printed on premium paper, suitable for framing.",
+    category: "Art",
+    startingPrice: 50,
+    image:
+      "https://images.unsplash.com/photo-1577083552431-6e5fd01aa342",
+    endsAt: hoursFromNow(20),
+  },
 ];
 
 async function main() {
-  /*
-    Create or reuse a dedicated demo seller.
-  */
   const password =
     await bcrypt.hash(
       "Demo123!",
@@ -164,11 +241,6 @@ async function main() {
       },
     });
 
-  /*
-    Remove ONLY previous seeded auctions.
-
-    Real user auctions remain untouched.
-  */
   await prisma.auction.deleteMany({
     where: {
       sellerId:
@@ -176,34 +248,15 @@ async function main() {
     },
   });
 
-  /*
-    Create fresh demo auctions.
-  */
   await prisma.auction.createMany({
     data: auctions.map(
       (auction) => ({
-        title:
-          auction.title,
-
-        description:
-          auction.description,
-
-        category:
-          auction.category,
-
-        startingPrice:
-          auction.startingPrice,
+        ...auction,
 
         currentBid:
           auction.startingPrice,
 
         bids: 0,
-
-        image:
-          auction.image,
-
-        endsAt:
-          auction.endsAt,
 
         sellerId:
           demoSeller.id,
@@ -212,11 +265,11 @@ async function main() {
   });
 
   console.log(
-    `✅ Created ${auctions.length} demo auctions`
+    `Created ${auctions.length} demo auctions`
   );
 
   console.log(
-    `✅ Demo seller: ${demoSeller.username}`
+    `Demo seller: ${demoSeller.username}`
   );
 }
 
