@@ -1,7 +1,10 @@
-import { API_URL } from "@/lib/api";
+
 import Navbar from "../../../components/layout/Navbar";
 import Footer from "../../../components/layout/Footer";
 import BidPanel from "../../../components/auctions/BidPanel";
+
+const BACKEND_URL =
+  process.env.BACKEND_URL || "http://localhost:4000";
 
 type AuctionPageProps = {
   params: Promise<{
@@ -39,7 +42,7 @@ export default async function AuctionPage({
   const { id } = await params;
 
   const response = await fetch(
-    `${API_URL}/api/auctions/${id}`,
+    `${BACKEND_URL}/api/auctions/${id}`,
     {
       cache: "no-store",
     }

@@ -5,6 +5,7 @@ import HowItWorks from "../components/home/HowItWorks";
 import SellerCTA from "../components/home/SellerCTA";
 import Footer from "../components/layout/Footer";
 
+
 export default function HomePage() {
 
     return (
@@ -15,37 +16,37 @@ export default function HomePage() {
                 <section className="hero-background">
                     <div
                         className="
-              max-w-7xl
-              mx-auto
-              px-2 sm:px-4 lg:px-6
-              pt-12 sm:pt-16 lg:pt-20
-              pb-12 sm:pb-16 lg:pb-20
-            "
+                            max-w-7xl
+                            mx-auto
+                            px-2 sm:px-4 lg:px-6
+                            pt-12 sm:pt-16 lg:pt-20
+                            pb-12 sm:pb-16 lg:pb-20
+                            "
                     >
                         <p
                             className="
-                text-xs sm:text-sm
-                font-semibold
-                uppercase
-                tracking-[0.12em] sm:tracking-[0.16em]
-                text-[var(--bidora-accent)]
-              "
+                                text-xs sm:text-sm
+                                font-semibold
+                                uppercase
+                                tracking-[0.12em] sm:tracking-[0.16em]
+                                text-[var(--bidora-accent)]
+                            "
                         >
                             Live auction marketplace
                         </p>
 
                         <h1
                             className="
-                mt-4
-                text-2xl
-                sm:text-4xl
-                lg:text-5xl
-                xl:text-6xl
-                font-bold
-                tracking-tight
-                leading-[1.05]
-                max-w-4xl
-              "
+                                mt-4
+                                text-2xl
+                                sm:text-4xl
+                                lg:text-5xl
+                                xl:text-6xl
+                                font-bold
+                                tracking-tight
+                                leading-[1.05]
+                                max-w-4xl
+                            "
                         >
                             Find it. Bid on it.
                             <br />
@@ -57,14 +58,14 @@ export default function HomePage() {
 
                         <p
                             className="
-                mt-6
-                text-base
-                sm:text-lg
-                lg:text-xl
-                text-[var(--bidora-text-secondary)]
-                max-w-xl
-                leading-relaxed
-              "
+                                mt-6
+                                text-base
+                                sm:text-lg
+                                lg:text-xl
+                                text-[var(--bidora-text-secondary)]
+                                max-w-xl
+                                leading-relaxed
+                            "
                         >
                             Discover unique items and compete in live auctions.
                             Find something you love and place your bid.
@@ -72,27 +73,27 @@ export default function HomePage() {
 
                         <div
                             className="
-                mt-8
-                flex
-                flex-col
-                sm:flex-row
-                gap-3 sm:gap-4
-                sm:items-center
-              "
+                                mt-8
+                                flex
+                                flex-col
+                                sm:flex-row
+                                gap-3 sm:gap-4
+                                sm:items-center
+                            "
                         >
                             <a
                                 href="/auctions"
                                 className="
-                  bg-[var(--bidora-primary)]
-                  text-white
-                  px-6 sm:px-7
-                  py-3 sm:py-3.5
-                  rounded-xl
-                  font-semibold
-                  hover:bg-[var(--bidora-primary-hover)]
-                  transition-all
-                  text-center
-                "
+                                    bg-[var(--bidora-primary)]
+                                    text-white
+                                    px-6 sm:px-7
+                                    py-3 sm:py-3.5
+                                    rounded-xl
+                                    font-semibold
+                                    hover:bg-[var(--bidora-primary-hover)]
+                                    transition-all
+                                    text-center
+                                    "
                             >
                                 Explore auctions
                             </a>
@@ -100,17 +101,17 @@ export default function HomePage() {
                             <a
                                 href="#how-it-works"
                                 className="
-                  border
-                  border-[var(--bidora-border)]
-                  bg-white
-                  px-6
-                  py-3
-                  rounded-xl
-                  font-medium
-                  hover:border-[var(--bidora-primary)]
-                  transition
-                  text-center
-                "
+                                    border
+                                    border-[var(--bidora-border)]
+                                    bg-white
+                                    px-6
+                                    py-3
+                                    rounded-xl
+                                    font-medium
+                                    hover:border-[var(--bidora-primary)]
+                                    transition
+                                    text-center
+                                    "
                             >
                                 How it works
                             </a>
