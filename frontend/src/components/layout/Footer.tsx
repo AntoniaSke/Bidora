@@ -50,7 +50,7 @@ export default function Footer() {
               </a>
 
               <a
-                href="/categories"
+                href="/#categories"
                 className="text-sm text-[var(--bidora-text-secondary)] hover:text-[var(--bidora-primary)] transition"
               >
                 Categories

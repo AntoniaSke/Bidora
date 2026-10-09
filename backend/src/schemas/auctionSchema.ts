@@ -1,5 +1,15 @@
 import { z } from "zod";
 
+export const auctionCategorySchema = z.enum([
+  "Electronics", "Fashion", "Gaming", "Collectibles", "Art", "Home",
+]);
+
+export const auctionCategoryFilterSchema = z.string().trim()
+  .transform((value) => auctionCategorySchema.options.find(
+    (category) => category.toLowerCase() === value.toLowerCase()
+  ) ?? value)
+  .pipe(auctionCategorySchema);
+
 export const createAuctionSchema = z.object({
   title: z
     .string()
@@ -7,9 +17,7 @@ export const createAuctionSchema = z.object({
     .min(3, "Title must be at least 3 characters")
     .max(80, "Title must be less than 80 characters"),
 
-  category: z.enum([
-    "Electronics", "Fashion", "Gaming", "Collectibles", "Art", "Home",
-  ]),
+  category: auctionCategorySchema,
 
   startingPrice: z
     .number()

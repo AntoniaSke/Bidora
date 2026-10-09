@@ -1,8 +1,12 @@
 import Navbar from "@/src/components/layout/Navbar";
 import Footer from "@/src/components/layout/Footer";
 import AuctionExplorer from "@/src/components/auctions/AuctionExplorer";
+import { resolveCategory } from "@/src/data/categories";
 
-export default function AuctionsPage() {
+export default async function AuctionsPage({ searchParams }: {
+  searchParams: Promise<{ category?: string | string[] }>;
+}) {
+  const category = resolveCategory((await searchParams).category);
   return (
     <>
       <Navbar />
@@ -24,7 +28,7 @@ export default function AuctionsPage() {
           </div>
         </section>
 
-        <AuctionExplorer />
+        <AuctionExplorer initialCategory={category} />
       </main>
 
       <Footer />

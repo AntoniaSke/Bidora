@@ -2,13 +2,14 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Request, Response } from "express";
 import { prisma } from "../lib/prisma.js";
-import { createAuction, updateAuction, deleteAuction } from "./auctionController.js";
+import { getAuctions, createAuction, updateAuction, deleteAuction } from "./auctionController.js";
 import { createAuctionSchema, updateAuctionSchema } from "../schemas/auctionSchema.js";
 
 // Replace the lazy Prisma delegate with an inert object before mocking methods.
 // No test can fall through to a real database operation.
 type EligibleWhere = { id: number; sellerId: number; bids: number; endsAt: { gt: Date } };
 const auctionStore = {
+  async findMany(_args: { where: { category?: string; endsAt: { gt: Date } }; orderBy: unknown }) { return []; },
   async create(_args: { data: Record<string, unknown> }) { return auction(); },
   async findUnique(_args: { where: { id: number } }): Promise<ReturnType<typeof auction> | null> { return null; },
   async updateMany(_args: { where: EligibleWhere; data: Record<string, unknown> }) { return { count: 0 }; },
@@ -16,7 +17,7 @@ const auctionStore = {
 };
 Object.defineProperty(prisma, "auction", { value: auctionStore, configurable: true });
 function request(body: unknown = {}, id = "1", userId = 7) {
-  return { body, params: { id }, user: { userId } } as unknown as Request;
+  return { body, query: {}, params: { id }, user: { userId } } as unknown as Request;
 }
 
 function response() {
@@ -163,4 +164,32 @@ test("edit/delete reject missing, other-owned, ended and bid-on auctions", async
   }
   assert.equal(write.mock.callCount(), 0);
   assert.equal(remove.mock.callCount(), 0);
+});
+
+
+test("category filtering normalizes all supported categories and retains active-only filtering", async (t) => {
+  const read = t.mock.method(auctionStore, "findMany", async () => []);
+  for (const category of ["Electronics", "Fashion", "Gaming", "Collectibles", "Art", "Home"]) {
+    const { res, result } = response();
+    await getAuctions({ query: { category: ` ${category.toLowerCase()} ` } } as unknown as Request, res);
+    assert.equal(result.code, 200);
+    const where = read.mock.calls.at(-1)!.arguments[0]!.where;
+    assert.equal(where.category, category);
+    assert.ok(where.endsAt.gt instanceof Date);
+    assert.equal(createAuctionSchema.safeParse({ ...validPayload(), category }).success, true);
+  }
+});
+
+test("unfiltered listing works and invalid categories never reach the database", async (t) => {
+  const read = t.mock.method(auctionStore, "findMany", async () => []);
+  const { res, result } = response();
+  await getAuctions(request(), res);
+  assert.equal(result.code, 200);
+  assert.equal(read.mock.calls[0].arguments[0]!.where.category, undefined);
+  for (const category of ["Unknown", "", ["Gaming", "Art"], { name: "Art" }]) {
+    const { res, result } = response();
+    await getAuctions({ query: { category } } as unknown as Request, res);
+    assert.equal(result.code, 400);
+  }
+  assert.equal(read.mock.callCount(), 1);
 });
