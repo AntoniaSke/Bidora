@@ -76,7 +76,7 @@ export default function LoginForm() {
                 rounded-3xl
                 border
                 border-[var(--bidora-border)]
-                bg-white
+                bg-[var(--bidora-surface)]
                 p-6
                 sm:p-8
             "

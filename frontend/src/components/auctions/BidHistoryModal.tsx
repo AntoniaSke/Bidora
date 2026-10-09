@@ -115,7 +115,7 @@ export default function BidHistoryModal({
               rounded-2xl
               border
               border-[var(--bidora-border)]
-              bg-white
+              bg-[var(--bidora-surface)]
               shadow-xl
             "
             onClick={(event) =>
@@ -161,7 +161,7 @@ export default function BidHistoryModal({
                   justify-center
                   rounded-full
                   transition
-                  hover:bg-gray-100
+                  hover:bg-[var(--bidora-surface-muted)]
                 "
                 aria-label="Close bid history"
               >

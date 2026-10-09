@@ -26,7 +26,7 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section  id="how-it-works" className="bg-[var(--bidora-primary)] text-white">
+    <section  id="how-it-works" className="bg-[var(--bidora-surface)] text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-24">
 
         {/* Heading */}

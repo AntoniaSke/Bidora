@@ -1,6 +1,6 @@
 export default function Footer() {
   return (
-    <footer className="bg-[#f8f8f6] border-t border-[var(--bidora-border)]">
+    <footer className="bg-[var(--bidora-background)] border-t border-[var(--bidora-border)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
 
         <div
@@ -18,7 +18,7 @@ export default function Footer() {
               href="/"
               className="text-2xl font-black tracking-[-0.055em]"
             >
-              <span className="text-[var(--bidora-primary)]">BID</span>
+              <span className="text-[var(--bidora-text)]">BID</span>
               <span className="text-[var(--bidora-accent)]">ORA</span>
             </a>
 

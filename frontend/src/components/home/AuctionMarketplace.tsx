@@ -288,7 +288,7 @@ export default function AuctionMarketplace() {
                   rounded-xl
                   border
                   border-[var(--bidora-border)]
-                  bg-white
+                  bg-[var(--bidora-surface)]
                   py-4
                   pl-12
                   pr-4
@@ -311,7 +311,7 @@ export default function AuctionMarketplace() {
                 rounded-xl
                 border
                 border-[var(--bidora-border)]
-                bg-white
+                bg-[var(--bidora-surface)]
                 px-4
                 py-4
                 outline-none
@@ -406,7 +406,7 @@ export default function AuctionMarketplace() {
                 border
                 border-dashed
                 border-[var(--bidora-border)]
-                bg-white
+                bg-[var(--bidora-surface)]
                 px-6
                 py-16
                 text-center

@@ -147,7 +147,7 @@ export default function ProfileForm() {
         rounded-3xl
         border
         border-[var(--bidora-border)]
-        bg-white
+        bg-[var(--bidora-surface)]
         p-6
         sm:p-8
         lg:p-10
@@ -223,7 +223,7 @@ export default function ProfileForm() {
               rounded-xl
               border
               border-[var(--bidora-border)]
-              bg-gray-50
+              bg-[var(--bidora-surface-muted)]
               px-4
               py-3.5
               text-[var(--bidora-text-secondary)]
@@ -253,7 +253,7 @@ export default function ProfileForm() {
               rounded-xl
               border
               border-[var(--bidora-border)]
-              bg-gray-50
+              bg-[var(--bidora-surface-muted)]
               px-4
               py-3.5
               text-[var(--bidora-text-secondary)]
@@ -396,7 +396,7 @@ export default function ProfileForm() {
               rounded-xl
               border
               border-[var(--bidora-border)]
-              bg-white
+              bg-[var(--bidora-surface)]
               px-4
               py-3.5
               outline-none

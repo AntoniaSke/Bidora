@@ -327,7 +327,7 @@ export default function AuctionCard({
           rounded-2xl
           border
           border-[var(--bidora-border)]
-          bg-white
+          bg-[var(--bidora-surface)]
           transition-all
           duration-300
           hover:-translate-y-1
@@ -340,7 +340,7 @@ export default function AuctionCard({
             relative
             aspect-[4/3]
             overflow-hidden
-            bg-gray-100
+            bg-[var(--bidora-surface-muted)]
           "
         >
           <Link
@@ -428,7 +428,7 @@ export default function AuctionCard({
                     : bidStatus ===
                       "won"
                       ? "bg-green-100 text-green-700"
-                      : "bg-gray-200 text-gray-700"
+                      : "bg-[var(--bidora-surface-muted)] text-[var(--bidora-text-secondary)]"
                 }
               `}
             >
@@ -470,7 +470,7 @@ export default function AuctionCard({
                 items-center
                 justify-center
                 rounded-full
-                bg-white
+                bg-[var(--bidora-surface)]
                 shadow-sm
                 transition
                 hover:scale-105
@@ -523,7 +523,7 @@ export default function AuctionCard({
                       }
                       className="
                         rounded-lg
-                        bg-white
+                        bg-[var(--bidora-surface)]
                         px-3
                         py-2
                         text-sm
@@ -546,7 +546,7 @@ export default function AuctionCard({
                       href={`/profile/auctions/${id}/edit`}
                       className="
                         rounded-lg
-                        bg-white
+                        bg-[var(--bidora-surface)]
                         px-3
                         py-2
                         text-sm
