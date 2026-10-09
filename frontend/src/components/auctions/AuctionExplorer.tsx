@@ -442,6 +442,7 @@ export default function AuctionExplorer({ initialCategory = "All" }: { initialCa
 
             {/* CATEGORY */}
             <select
+              aria-label="Category"
               value={category}
               onChange={(e) =>
                 changeCategory(
@@ -591,7 +592,7 @@ export default function AuctionExplorer({ initialCategory = "All" }: { initialCa
         {/* RESULTS COUNT */}
         <div className="mt-10 mb-6">
           <h2 className="text-2xl sm:text-3xl font-bold text-[var(--bidora-text)]">
-            Active auctions
+            {category === "All" ? "Active auctions" : `${category} auctions`}
           </h2>
 
           <p className="mt-1 text-sm text-[var(--bidora-text-secondary)]">
