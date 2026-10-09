@@ -1,5 +1,6 @@
 "use client";
 
+import { categories } from "@/src/data/categories";
 import { API_URL } from "@/lib/api";
 
 import { useEffect, useMemo, useState } from "react";
@@ -242,6 +243,7 @@ export default function AuctionMarketplace() {
             </div>
 
             <select
+              aria-label="Category"
               value={category}
               onChange={(event) =>
                 setCategory(
@@ -264,29 +266,9 @@ export default function AuctionMarketplace() {
                 All categories
               </option>
 
-              <option value="Electronics">
-                Electronics
-              </option>
-
-              <option value="Fashion">
-                Fashion
-              </option>
-
-              <option value="Gaming">
-                Gaming
-              </option>
-
-              <option value="Collectibles">
-                Collectibles
-              </option>
-
-              <option value="Art">
-                Art
-              </option>
-
-              <option value="Home">
-                Home
-              </option>
+              {categories.map((item) => (
+                <option key={item.id} value={item.name}>{item.name}</option>
+              ))}
             </select>
           </div>
 
