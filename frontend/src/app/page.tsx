@@ -9,7 +9,7 @@ import Footer from "../components/layout/Footer";
 export default function HomePage() {
 
     return (
-        <div className="home-dark">
+        <div className="min-h-screen">
             <Navbar />
 
             <main>

@@ -84,7 +84,7 @@ export default async function AuctionPage({
                   aspect-square
                   overflow-hidden
                   rounded-3xl
-                  bg-white
+                  bg-[var(--bidora-surface)]
                   border
                   border-[var(--bidora-border)]
                 "
@@ -152,7 +152,7 @@ export default async function AuctionPage({
       rounded-2xl
       border
       border-[var(--bidora-border)]
-      bg-white
+      bg-[var(--bidora-surface)]
       p-5
     "
                 >

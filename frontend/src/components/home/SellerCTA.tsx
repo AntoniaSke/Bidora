@@ -5,8 +5,8 @@ export default function SellerCTA() {
                 border-t-4
                 border-[var(--bidora-accent)]
                 bg-gradient-to-b
-                from-[#fff4ef]
-                to-[#f7f9fc]
+                from-[var(--bidora-surface)]
+                to-[var(--bidora-background)]
             "
             >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-24">

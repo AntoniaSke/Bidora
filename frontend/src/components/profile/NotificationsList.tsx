@@ -198,7 +198,7 @@ export default function NotificationsList() {
           border
           border-dashed
           border-[var(--bidora-border)]
-          bg-white
+          bg-[var(--bidora-surface)]
           px-6
           py-20
           text-center
@@ -275,7 +275,7 @@ export default function NotificationsList() {
 
                   ${
                     notification.isRead
-                      ? "border-[var(--bidora-border)] bg-white"
+                      ? "border-[var(--bidora-border)] bg-[var(--bidora-surface)]"
                       : "border-[var(--bidora-primary)]/20 bg-blue-50/40"
                   }
 

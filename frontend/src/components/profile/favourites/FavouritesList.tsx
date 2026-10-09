@@ -97,7 +97,7 @@ export default function FavouritesList() {
           border
           border-dashed
           border-[var(--bidora-border)]
-          bg-white
+          bg-[var(--bidora-surface)]
           py-20
           px-6
           text-center
@@ -170,7 +170,7 @@ export default function FavouritesList() {
                 ${
                   filter === item.value
                     ? "bg-[var(--bidora-primary)] text-white"
-                    : "border border-[var(--bidora-border)] bg-white text-[var(--bidora-text-secondary)] hover:text-[var(--bidora-primary)]"
+                    : "border border-[var(--bidora-border)] bg-[var(--bidora-surface)] text-[var(--bidora-text-secondary)] hover:text-[var(--bidora-primary)]"
                 }
               `}
             >
@@ -188,7 +188,7 @@ export default function FavouritesList() {
             border
             border-dashed
             border-[var(--bidora-border)]
-            bg-white
+            bg-[var(--bidora-surface)]
             px-6
             py-16
             text-center

@@ -295,7 +295,7 @@ export default function SellAuctionForm() {
         rounded-3xl
         border
         border-[var(--bidora-border)]
-        bg-white
+        bg-[var(--bidora-surface)]
         p-6
         sm:p-8
         lg:p-10
@@ -326,7 +326,7 @@ export default function SellAuctionForm() {
                 rounded-xl
                 border
                 border-[var(--bidora-border)]
-                bg-white
+                bg-[var(--bidora-surface)]
                 px-4
                 py-3.5
                 outline-none
@@ -363,7 +363,7 @@ export default function SellAuctionForm() {
                 rounded-xl
                 border
                 border-[var(--bidora-border)]
-                bg-white
+                bg-[var(--bidora-surface)]
                 px-4
                 py-3.5
                 outline-none
@@ -397,7 +397,7 @@ export default function SellAuctionForm() {
                 rounded-xl
                 border
                 border-[var(--bidora-border)]
-                bg-white
+                bg-[var(--bidora-surface)]
                 px-4
                 py-3.5
                 outline-none
@@ -530,7 +530,7 @@ export default function SellAuctionForm() {
                   rounded-xl
                   border
                   border-[var(--bidora-border)]
-                  bg-white
+                  bg-[var(--bidora-surface)]
                   py-3.5
                   pl-8
                   pr-4
@@ -560,7 +560,7 @@ export default function SellAuctionForm() {
               Auction ends
             </label>
 
-            <div className="mt-2 flex w-full min-w-0 rounded-xl border border-[var(--bidora-border)] bg-white px-4 py-3.5">
+            <div className="mt-2 flex w-full min-w-0 rounded-xl border border-[var(--bidora-border)] bg-[var(--bidora-surface)] px-4 py-3.5">
               <input
                 id="endDate"
                 type="datetime-local"

@@ -408,7 +408,7 @@ export default function EditAuctionForm({
         rounded-3xl
         border
         border-[var(--bidora-border)]
-        bg-white
+        bg-[var(--bidora-surface)]
         p-6
         sm:p-8
       "
@@ -512,7 +512,7 @@ export default function EditAuctionForm({
               rounded-xl
               border
               border-[var(--bidora-border)]
-              bg-white
+              bg-[var(--bidora-surface)]
               px-4
               py-3.5
               outline-none
@@ -554,7 +554,7 @@ export default function EditAuctionForm({
               rounded-xl
               border
               border-[var(--bidora-border)]
-              bg-white
+              bg-[var(--bidora-surface)]
               px-4
               py-3.5
               outline-none
@@ -594,7 +594,7 @@ export default function EditAuctionForm({
               rounded-xl
               border
               border-[var(--bidora-border)]
-              bg-white
+              bg-[var(--bidora-surface)]
               px-4
               py-3.5
               outline-none
@@ -650,7 +650,7 @@ export default function EditAuctionForm({
                 rounded-xl
                 border
                 border-[var(--bidora-border)]
-                bg-white
+                bg-[var(--bidora-surface)]
                 py-3.5
                 pl-8
                 pr-4
@@ -692,7 +692,7 @@ export default function EditAuctionForm({
               rounded-xl
               border
               border-[var(--bidora-border)]
-              bg-white
+              bg-[var(--bidora-surface)]
               px-4
               py-3.5
               outline-none
@@ -758,7 +758,7 @@ export default function EditAuctionForm({
             rounded-xl
             border
             border-[var(--bidora-border)]
-            bg-white
+            bg-[var(--bidora-surface)]
             px-6
             py-3
             font-semibold

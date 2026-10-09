@@ -39,7 +39,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="w-full bg-white border-b border-[var(--bidora-border)]">
+    <nav className="w-full bg-[var(--bidora-surface)] border-b border-[var(--bidora-border)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between">
 
         {/* BRAND */}
@@ -47,7 +47,7 @@ export default function Navbar() {
           href="/"
           className="text-2xl sm:text-3xl font-black tracking-[-0.055em]"
         >
-          <span className="text-[var(--bidora-primary)]">
+          <span className="text-[var(--bidora-text)]">
             BID
           </span>
 

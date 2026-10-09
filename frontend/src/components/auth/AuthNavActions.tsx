@@ -432,7 +432,7 @@ export default function AuthNavActions({
           rounded-full
           border
           border-[var(--bidora-border)]
-          bg-white
+          bg-[var(--bidora-surface)]
           text-[var(--bidora-primary)]
           transition
           hover:border-[var(--bidora-primary)]
@@ -478,7 +478,7 @@ export default function AuthNavActions({
             rounded-2xl
             border
             border-[var(--bidora-border)]
-            bg-white
+            bg-[var(--bidora-surface)]
             p-2
             shadow-lg
           "

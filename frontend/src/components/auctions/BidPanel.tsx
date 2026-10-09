@@ -351,7 +351,7 @@ export default function BidPanel({
         rounded-2xl
         border
         border-[var(--bidora-border)]
-        bg-white
+        bg-[var(--bidora-surface)]
         p-6
       "
     >
@@ -550,7 +550,7 @@ export default function BidPanel({
                     rounded-xl
                     border
                     border-[var(--bidora-border)]
-                    bg-white
+                    bg-[var(--bidora-surface)]
                     py-3.5
                     pl-8
                     pr-4
@@ -558,7 +558,7 @@ export default function BidPanel({
                     transition
                     focus:border-[var(--bidora-primary)]
                     disabled:cursor-not-allowed
-                    disabled:bg-gray-100
+                    disabled:bg-[var(--bidora-surface-muted)]
                     disabled:opacity-60
                   "
                 />

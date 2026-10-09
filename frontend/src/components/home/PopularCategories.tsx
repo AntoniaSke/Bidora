@@ -47,7 +47,7 @@ export default function PopularCategories({ showAll = false }: { showAll?: boole
                 overflow-hidden
                 rounded-3xl
                 aspect-[4/3]
-                bg-gray-200
+                bg-[var(--bidora-surface-muted)]
               "
             >
 
@@ -92,7 +92,7 @@ export default function PopularCategories({ showAll = false }: { showAll?: boole
                     items-center
                     justify-center
                     rounded-full
-                    bg-white
+                    bg-[var(--bidora-surface)]
                     text-[var(--bidora-primary)]
                     transition-transform
                     duration-300

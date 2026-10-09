@@ -430,7 +430,7 @@ export default function AuctionExplorer({ initialCategory = "All" }: { initialCa
               rounded-2xl
               border
               border-[var(--bidora-border)]
-              bg-white
+              bg-[var(--bidora-surface)]
               py-4
               pl-12
               pr-4
@@ -469,7 +469,7 @@ export default function AuctionExplorer({ initialCategory = "All" }: { initialCa
                 rounded-xl
                 border
                 border-[var(--bidora-border)]
-                bg-white
+                bg-[var(--bidora-surface)]
                 px-4
                 py-3
                 outline-none
@@ -498,7 +498,7 @@ export default function AuctionExplorer({ initialCategory = "All" }: { initialCa
                 rounded-xl
                 border
                 border-[var(--bidora-border)]
-                bg-white
+                bg-[var(--bidora-surface)]
                 px-4
                 py-3
                 outline-none
@@ -539,7 +539,7 @@ export default function AuctionExplorer({ initialCategory = "All" }: { initialCa
                 rounded-xl
                 border
                 border-[var(--bidora-border)]
-                bg-white
+                bg-[var(--bidora-surface)]
                 px-4
                 py-3
                 outline-none
@@ -579,7 +579,7 @@ export default function AuctionExplorer({ initialCategory = "All" }: { initialCa
                 rounded-xl
                 border
                 border-[var(--bidora-border)]
-                bg-white
+                bg-[var(--bidora-surface)]
                 px-4
                 py-3
                 outline-none
@@ -678,7 +678,7 @@ export default function AuctionExplorer({ initialCategory = "All" }: { initialCa
               border
               border-dashed
               border-[var(--bidora-border)]
-              bg-white
+              bg-[var(--bidora-surface)]
               py-20
               text-center
             "
@@ -696,7 +696,7 @@ export default function AuctionExplorer({ initialCategory = "All" }: { initialCa
         {!isLoading && !loadError && totalPages > 1 && (
           <nav aria-label="Auction pagination" className="mt-10 flex flex-wrap items-center justify-center gap-2">
             <button type="button" disabled={currentPage === 1} onClick={() => changePage(currentPage - 1)}
-              className="rounded-xl border border-[var(--bidora-border)] bg-white px-4 py-3 disabled:cursor-not-allowed disabled:opacity-40">
+              className="rounded-xl border border-[var(--bidora-border)] bg-[var(--bidora-surface)] px-4 py-3 disabled:cursor-not-allowed disabled:opacity-40">
               Previous
             </button>
             {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
@@ -704,12 +704,12 @@ export default function AuctionExplorer({ initialCategory = "All" }: { initialCa
                 aria-current={currentPage === page ? "page" : undefined} onClick={() => changePage(page)}
                 className={`min-w-11 rounded-xl border px-3 py-3 ${currentPage === page
                   ? "border-[var(--bidora-primary)] bg-[var(--bidora-primary)] text-white"
-                  : "border-[var(--bidora-border)] bg-white hover:border-[var(--bidora-primary)]"}`}>
+                  : "border-[var(--bidora-border)] bg-[var(--bidora-surface)] hover:border-[var(--bidora-primary)]"}`}>
                 {page}
               </button>
             ))}
             <button type="button" disabled={currentPage === totalPages} onClick={() => changePage(currentPage + 1)}
-              className="rounded-xl border border-[var(--bidora-border)] bg-white px-4 py-3 disabled:cursor-not-allowed disabled:opacity-40">
+              className="rounded-xl border border-[var(--bidora-border)] bg-[var(--bidora-surface)] px-4 py-3 disabled:cursor-not-allowed disabled:opacity-40">
               Next
             </button>
           </nav>
