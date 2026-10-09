@@ -1,6 +1,7 @@
 "use client";
 
 import { API_URL } from "@/lib/api";
+import { categories, categoryNames } from "@/src/data/categories";
 
 import { ImagePlus } from "lucide-react";
 import { useState } from "react";
@@ -21,9 +22,7 @@ const auctionSchema = z.object({
     .min(10, "Description must be at least 10 characters")
     .max(1000, "Description must be less than 1000 characters"),
 
-  category: z
-    .string()
-    .min(1, "Please select a category"),
+  category: z.enum(categoryNames, "Please select a category"),
 
   startingPrice: z
     .number()
@@ -409,29 +408,11 @@ export default function SellAuctionForm() {
                 Select category
               </option>
 
-              <option value="Electronics">
-                Electronics
+              {categories.map((category) => (
+              <option key={category.id} value={category.name}>
+                {category.name}
               </option>
-
-              <option value="Fashion">
-                Fashion
-              </option>
-
-              <option value="Gaming">
-                Gaming
-              </option>
-
-              <option value="Collectibles">
-                Collectibles
-              </option>
-
-              <option value="Art">
-                Art
-              </option>
-
-              <option value="Home">
-                Home
-              </option>
+            ))}
             </select>
 
             {errors.category && (

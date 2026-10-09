@@ -1,5 +1,7 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { categories } from "@/src/data/categories";
 import { API_URL } from "@/lib/api";
 
 import {
@@ -50,12 +52,12 @@ type SortOption =
   | "lowest-price"
   | "highest-price";
 
-export default function AuctionExplorer() {
+export default function AuctionExplorer({ initialCategory = "All" }: { initialCategory?: string }) {
+  const router = useRouter();
+  const category = initialCategory;
   const [searchTerm, setSearchTerm] =
     useState("");
 
-  const [category, setCategory] =
-    useState("All");
 
   const [priceFilter, setPriceFilter] =
     useState<PriceFilter>("all");
@@ -72,8 +74,9 @@ export default function AuctionExplorer() {
   const [auctions, setAuctions] =
     useState<Auction[]>([]);
 
-  const [isLoading, setIsLoading] =
-    useState(true);
+  const [loadedCategory, setLoadedCategory] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const isLoading = loadedCategory !== category;
 
   const [
     currentUserId,
@@ -81,81 +84,49 @@ export default function AuctionExplorer() {
   ] = useState<number | null>(null);
 
   const [now, setNow] =
-    useState(Date.now());
+    useState(() => Date.now());
 
   /*
     INITIAL DATA
   */
   useEffect(() => {
+    const controller = new AbortController();
     async function loadData() {
       try {
-        const [
-          auctionsResponse,
-          favouritesResponse,
-          userResponse,
-        ] = await Promise.all([
-          fetch(
-            `${API_URL}/api/auctions`
-          ),
-
-          fetch(
-            `${API_URL}/api/favourites`,
-            {
-              credentials: "include",
-            }
-          ),
-
-          fetch(
-            `${API_URL}/api/auth/me`,
-            {
-              credentials: "include",
-            }
-          ),
+        const query = category === "All" ? "" : `?category=${encodeURIComponent(category)}`;
+        const [auctionsResponse, favouritesResponse, userResponse] = await Promise.all([
+          fetch(`${API_URL}/api/auctions${query}`, { signal: controller.signal }),
+          fetch(`${API_URL}/api/favourites`, { credentials: "include", signal: controller.signal }),
+          fetch(`${API_URL}/api/auth/me`, { credentials: "include", signal: controller.signal }),
         ]);
-
-        if (auctionsResponse.ok) {
-          const auctionsData =
-            await auctionsResponse.json();
-
-          setAuctions(
-            auctionsData
-          );
-        }
-
-        if (favouritesResponse.ok) {
-          const favouritesData =
-            await favouritesResponse.json();
-
-          const ids =
-            favouritesData.map(
-              (auction: {
-                id: number;
-              }) => auction.id
-            );
-
-          setFavouriteIds(ids);
-        }
-
-        if (userResponse.ok) {
-          const user =
-            await userResponse.json();
-
-          setCurrentUserId(
-            user.id
-          );
-        }
+        if (!auctionsResponse.ok) throw new Error("Could not load auctions. Please refresh to try again.");
+        const auctionsData = await auctionsResponse.json();
+        const favouritesData = favouritesResponse.ok ? await favouritesResponse.json() : [];
+        const user = userResponse.ok ? await userResponse.json() : null;
+        if (controller.signal.aborted) return;
+        setAuctions(auctionsData);
+        setFavouriteIds(favouritesData.map((auction: { id: number }) => auction.id));
+        setCurrentUserId(user?.id ?? null);
+        setLoadError(null);
       } catch (error) {
-        console.error(
-          "Could not load auction data:",
-          error
-        );
+        if (!controller.signal.aborted) {
+          setLoadError(error instanceof Error ? error.message : "Could not load auctions.");
+        }
       } finally {
-        setIsLoading(false);
+        if (!controller.signal.aborted) setLoadedCategory(category);
       }
     }
+    void loadData();
+    return () => controller.abort();
+  }, [category]);
 
-    loadData();
-  }, []);
+  function changeCategory(value: string) {
+    const params = new URLSearchParams(window.location.search);
+    if (value === "All") params.delete("category");
+    else params.set("category", value);
+    const query = params.toString();
+    router.push(`/auctions${query ? `?${query}` : ""}`, { scroll: false });
+  }
 
   /*
     REALTIME BIDS
@@ -473,7 +444,7 @@ export default function AuctionExplorer() {
             <select
               value={category}
               onChange={(e) =>
-                setCategory(
+                changeCategory(
                   e.target.value
                 )
               }
@@ -491,29 +462,9 @@ export default function AuctionExplorer() {
                 All categories
               </option>
 
-              <option value="Electronics">
-                Electronics
-              </option>
-
-              <option value="Fashion">
-                Fashion
-              </option>
-
-              <option value="Gaming">
-                Gaming
-              </option>
-
-              <option value="Collectibles">
-                Collectibles
-              </option>
-
-              <option value="Art">
-                Art
-              </option>
-
-              <option value="Home">
-                Home
-              </option>
+              {categories.map((item) => (
+                <option key={item.id} value={item.name}>{item.name}</option>
+              ))}
             </select>
 
             {/* PRICE */}
@@ -658,6 +609,8 @@ export default function AuctionExplorer() {
           <p className="text-[var(--bidora-text-secondary)]">
             Loading auctions...
           </p>
+        ) : loadError ? (
+          <p role="alert" className="py-12 text-center text-red-600">{loadError}</p>
         ) : filteredAuctions.length >
           0 ? (
           <div

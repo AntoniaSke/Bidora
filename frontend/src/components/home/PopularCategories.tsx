@@ -1,9 +1,10 @@
 import { ArrowUpRight } from "lucide-react";
+import Link from "next/link";
 import { categories } from "../../data/categories";
 
 export default function PopularCategories() {
   return (
-    <section className="hero-background">
+    <section id="categories" className="hero-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
 
         <div className="flex items-end justify-between mb-10">
@@ -17,19 +18,19 @@ export default function PopularCategories() {
             </h2>
           </div>
 
-          <a
-            href="/categories"
+          <Link
+            href="/auctions"
             className="hidden sm:block font-semibold text-[var(--bidora-primary)] hover:underline"
           >
             View all categories →
-          </a>
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {categories.map((category) => (
-            <a
+            <Link
               key={category.id}
-              href={`/categories/${category.name.toLowerCase()}`}
+              href={`/auctions?category=${encodeURIComponent(category.name)}`}
               className="
                 group
                 relative
@@ -90,7 +91,7 @@ export default function PopularCategories() {
                 </div>
 
               </div>
-            </a>
+            </Link>
           ))}
         </div>
 

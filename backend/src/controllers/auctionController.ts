@@ -1,14 +1,22 @@
 import type { Request, Response } from "express";
 import { prisma } from "../lib/prisma.js";
-import { createAuctionSchema, updateAuctionSchema } from "../schemas/auctionSchema.js";
+import { auctionCategoryFilterSchema, createAuctionSchema, updateAuctionSchema } from "../schemas/auctionSchema.js";
 
 export async function getAuctions(
   req: Request,
   res: Response
 ) {
   try {
+    const category = req.query.category === undefined
+      ? undefined : auctionCategoryFilterSchema.safeParse(req.query.category);
+
+    if (category && !category.success) {
+      return res.status(400).json({ message: "Invalid auction category" });
+    }
+
     const auctions = await prisma.auction.findMany({
       where: {
+        ...(category?.success && { category: category.data }),
         endsAt: {
           gt: new Date(),
         },
