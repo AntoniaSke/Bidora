@@ -7,7 +7,7 @@ import { auctionCategorySchema, createAuctionSchema, updateAuctionSchema } from 
 
 // Replace the lazy Prisma delegate with an inert object before mocking methods.
 // No test can fall through to a real database operation.
-type EligibleWhere = { id: number; sellerId: number; bids: number; endsAt: { gt: Date } };
+type EligibleWhere = { id: number; sellerId: number; bids: number; endsAt: { gt: Date; lt?: Date }; description?: { startsWith: string }; seller?: { email: string }; bidHistory?: { every: { user: { email: { in: string[] } } } } };
 const auctionStore = {
   async findMany(_args: { where: { category?: string; endsAt: { gt: Date } }; orderBy: unknown }) { return []; },
   async create(_args: { data: Record<string, unknown> }) { return auction(); },
@@ -32,7 +32,7 @@ function response() {
 function auction() {
   return {
     id: 1, sellerId: 7, bids: 0, startingPrice: 50, currentBid: 50,
-    title: "Test auction", endsAt: new Date(Date.now() + 86_400_000),
+    title: "Test auction", description: "Normal auction description", endsAt: new Date(Date.now() + 86_400_000),
   };
 }
 
@@ -195,13 +195,13 @@ test("unfiltered listing works and invalid categories never reach the database",
 });
 
 
-test("demo catalogue covers every category with three valid unique listings", async () => {
+test("demo catalogue covers every category with five valid unique listings", async () => {
   const { buildDemoAuctions } = await import("../scripts/seedAuctions.js");
   const auctions = buildDemoAuctions("validation");
-  assert.equal(auctions.length, 60);
-  assert.equal(new Set(auctions.map((auction) => auction.title)).size, 60);
+  assert.equal(auctions.length, 100);
+  assert.equal(new Set(auctions.map((auction) => auction.title)).size, 100);
   for (const category of auctionCategorySchema.options) {
-    assert.equal(auctions.filter((auction) => auction.category === category).length, 3);
+    assert.equal(auctions.filter((auction) => auction.category === category).length, 5);
   }
   assert.ok(auctions.every((auction) => auction.description.startsWith("[DEMO:validation]")));
 });
@@ -209,7 +209,7 @@ test("demo catalogue covers every category with three valid unique listings", as
 test("demo activity uses increasing bids and different consecutive bidders", async () => {
   const { activityPlan } = await import("../scripts/seedDemoActivity.js");
   let total = 0;
-  for (let index = 0; index < 60; index++) {
+  for (let index = 0; index < 100; index++) {
     const plan = activityPlan(index, 25);
     total += plan.length;
     let previousAmount = 25;
@@ -222,5 +222,51 @@ test("demo activity uses increasing bids and different consecutive bidders", asy
       previousBidder = bid.bidderIndex;
     }
   }
-  assert.equal(total, 150);
+  assert.equal(total, 250);
+});
+
+
+test("demo deadline refresh changes only endsAt and restricts the atomic write to demo bids", async (t) => {
+  const existing = { ...auction(), description: "[DEMO:catalogue_v3] Sample", bids: 2, currentBid: 80 };
+  t.mock.method(auctionStore, "findUnique", async () => existing);
+  const write = t.mock.method(auctionStore, "updateMany", async () => ({ count: 1 }));
+  const endsAt = new Date(Date.now() + 60 * 86_400_000).toISOString();
+  const req = request({ endsAt });
+  req.user!.email = "bidora_demo_catalogue_v3@bidora.demo";
+  const { res, result } = response();
+  await updateAuction(req, res);
+  assert.equal(result.code, 200);
+  const { where, data } = write.mock.calls[0].arguments[0]!;
+  assert.deepEqual(data, { endsAt: new Date(endsAt) });
+  assert.equal(where.bids, 2);
+  assert.equal(where.seller?.email, req.user!.email);
+  assert.equal(where.bidHistory?.every.user.email.in.length, 4);
+  assert.equal(where.description?.startsWith, "[DEMO:catalogue_v3]");
+});
+
+test("demo refresh refuses ordinary actors, other fields, shorter dates and failed eligibility", async (t) => {
+  const existing = { ...auction(), description: "[DEMO:catalogue_v3] Sample", bids: 2 };
+  t.mock.method(auctionStore, "findUnique", async () => existing);
+  const write = t.mock.method(auctionStore, "updateMany", async () => ({ count: 0 }));
+  const longer = new Date(Date.now() + 60 * 86_400_000).toISOString();
+  for (const [body, email, code] of [
+    [{ endsAt: longer }, "ordinary@example.com", 400],
+    [{ endsAt: longer, title: "Changed title" }, "bidora_demo_catalogue_v3@bidora.demo", 400],
+    [{ endsAt: new Date(Date.now() + 3600_000).toISOString() }, "bidora_demo_catalogue_v3@bidora.demo", 400],
+    [{ endsAt: new Date(Date.now() + 200 * 86_400_000).toISOString() }, "bidora_demo_catalogue_v3@bidora.demo", 400],
+    [{ endsAt: longer }, "bidora_demo_catalogue_v3@bidora.demo", 409],
+  ] as const) {
+    const req = request(body); req.user!.email = email;
+    const { res, result } = response(); await updateAuction(req, res); assert.equal(result.code, code);
+  }
+  assert.equal(write.mock.callCount(), 1);
+});
+
+test("demo deadlines reserve three ending-soon listings and keep all others 30–90 days away", async () => {
+  const { buildDemoAuctions } = await import("../scripts/seedAuctions.js");
+  const now = Date.now(); const auctions = buildDemoAuctions("validation", now);
+  const days = auctions.map((auction) => (new Date(auction.endsAt).getTime() - now) / 86_400_000);
+  assert.equal(days.filter((value) => value < 1).length, 3);
+  assert.ok(days.slice(3).every((value) => value >= 30 && value <= 90));
+  assert.ok(auctions.every((auction) => auction.image.startsWith("https://")));
 });

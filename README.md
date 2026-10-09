@@ -417,9 +417,9 @@ Full-Stack / Front-End Developer
 
 BIDORA was designed and developed as a portfolio project demonstrating modern full-stack web development with **Next.js, React, TypeScript, Node.js, PostgreSQL, Prisma, Socket.IO, and cloud deployment**.
 
-### Safe demo catalogue (60 auctions)
+### Safe demo catalogue (100 auctions)
 
-The seed scripts now add 60 clearly marked demo auctions in 20 categories and
+The seed scripts now add 100 clearly marked demo auctions in 20 categories and
 1–4 bids per auction, favourites and bid notifications. They never delete old
 auctions or bids, reset prices, or alter existing passwords. Reruns with the same
 seed key/password skip existing listings and auctions that already have bids.
@@ -446,3 +446,22 @@ Without `DEMO_API_URL`, the scripts use the configured `DATABASE_URL`. API mode
 uses the normal authenticated create/bid/favourite routes; bids also trigger
 normal notifications and Socket.IO events. The homepage's six popular categories
 are currently editorial selections, not a ranking calculated from bid activity.
+
+
+The catalogue now has five listings per category: three end in 6–18 hours and the
+other 97 have 30–90-day windows. All listings include illustrative photographs.
+To extend existing portfolio demo deadlines without changing bids or prices:
+
+```bash
+npm run seed:auctions -- --refresh-deadlines
+```
+
+The first three existing ending-soon listings keep their dates. API refresh is
+restricted to the authenticated `catalogue_v3` seed seller and marked listings
+whose bids all belong to the four corresponding demo bidders. It only extends
+active deadlines (at most 180 days ahead), with ownership and bid-count guards
+in the database write. Ordinary auctions remain locked after the first bid.
+
+The Auctions page displays 12 results per page. Pagination runs after the
+existing search, category, price and status filters and sorting, resets on
+filter changes, and clamps to the last available page when results shrink.

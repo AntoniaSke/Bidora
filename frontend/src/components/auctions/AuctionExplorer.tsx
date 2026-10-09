@@ -67,6 +67,10 @@ export default function AuctionExplorer({ initialCategory = "All" }: { initialCa
 
   const [sort, setSort] =
     useState<SortOption>("ending-soon");
+  const [pagination, setPagination] = useState({ filterKey: "", page: 1 });
+  const pageSize = 12;
+  const filterKey = JSON.stringify([category, searchTerm, priceFilter, statusFilter, sort]);
+  function resetPage() { setPagination({ filterKey: "", page: 1 }); }
 
   const [favouriteIds, setFavouriteIds] =
     useState<number[]>([]);
@@ -121,6 +125,7 @@ export default function AuctionExplorer({ initialCategory = "All" }: { initialCa
   }, [category]);
 
   function changeCategory(value: string) {
+    resetPage();
     const params = new URLSearchParams(window.location.search);
     if (value === "All") params.delete("category");
     else params.set("category", value);
@@ -384,6 +389,15 @@ export default function AuctionExplorer({ initialCategory = "All" }: { initialCa
       now,
     ]);
 
+  const totalPages = Math.max(1, Math.ceil(filteredAuctions.length / pageSize));
+  const currentPage = Math.min(pagination.filterKey === filterKey ? pagination.page : 1, totalPages);
+  const startIndex = (currentPage - 1) * pageSize;
+  const visibleAuctions = filteredAuctions.slice(startIndex, startIndex + pageSize);
+  function changePage(page: number) {
+    setPagination({ filterKey, page: Math.max(1, Math.min(page, totalPages)) });
+    document.getElementById("auction-results")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   return (
     <section className="pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -405,11 +419,12 @@ export default function AuctionExplorer({ initialCategory = "All" }: { initialCa
             type="text"
             placeholder="Search auctions..."
             value={searchTerm}
-            onChange={(e) =>
+            onChange={(e) => {
+              resetPage();
               setSearchTerm(
                 e.target.value
-              )
-            }
+              );
+            }}
             className="
               w-full
               rounded-2xl
@@ -444,11 +459,12 @@ export default function AuctionExplorer({ initialCategory = "All" }: { initialCa
             <select
               aria-label="Category"
               value={category}
-              onChange={(e) =>
+              onChange={(e) => {
+                resetPage();
                 changeCategory(
                   e.target.value
-                )
-              }
+                );
+              }}
               className="
                 rounded-xl
                 border
@@ -471,12 +487,13 @@ export default function AuctionExplorer({ initialCategory = "All" }: { initialCa
             {/* PRICE */}
             <select
               value={priceFilter}
-              onChange={(e) =>
+              onChange={(e) => {
+                resetPage();
                 setPriceFilter(
                   e.target
                     .value as PriceFilter
-                )
-              }
+                );
+              }}
               className="
                 rounded-xl
                 border
@@ -511,12 +528,13 @@ export default function AuctionExplorer({ initialCategory = "All" }: { initialCa
             {/* STATUS */}
             <select
               value={statusFilter}
-              onChange={(e) =>
+              onChange={(e) => {
+                resetPage();
                 setStatusFilter(
                   e.target
                     .value as StatusFilter
-                )
-              }
+                );
+              }}
               className="
                 rounded-xl
                 border
@@ -550,12 +568,13 @@ export default function AuctionExplorer({ initialCategory = "All" }: { initialCa
 
             <select
               value={sort}
-              onChange={(e) =>
+              onChange={(e) => {
+                resetPage();
                 setSort(
                   e.target
                     .value as SortOption
-                )
-              }
+                );
+              }}
               className="
                 rounded-xl
                 border
@@ -590,19 +609,17 @@ export default function AuctionExplorer({ initialCategory = "All" }: { initialCa
         </div>
 
         {/* RESULTS COUNT */}
-        <div className="mt-10 mb-6">
+        <div id="auction-results" className="mt-10 mb-6 scroll-mt-24">
           <h2 className="text-2xl sm:text-3xl font-bold text-[var(--bidora-text)]">
             {category === "All" ? "Active auctions" : `${category} auctions`}
           </h2>
 
-          <p className="mt-1 text-sm text-[var(--bidora-text-secondary)]">
-            {filteredAuctions.length}{" "}
-            {filteredAuctions.length ===
-            1
-              ? "auction"
-              : "auctions"}{" "}
-            found
-          </p>
+          {!isLoading && !loadError && (
+            <p aria-live="polite" className="mt-1 text-sm text-[var(--bidora-text-secondary)]">
+              {filteredAuctions.length === 0 ? "0 auctions found" :
+                `Showing ${startIndex + 1}–${Math.min(startIndex + pageSize, filteredAuctions.length)} of ${filteredAuctions.length} auctions`}
+            </p>
+          )}
         </div>
 
         {/* GRID */}
@@ -624,7 +641,7 @@ export default function AuctionExplorer({ initialCategory = "All" }: { initialCa
               xl:grid-cols-4
             "
           >
-            {filteredAuctions.map(
+            {visibleAuctions.map(
               (auction) => (
                 <AuctionCard
                   key={auction.id}
@@ -675,6 +692,27 @@ export default function AuctionExplorer({ initialCategory = "All" }: { initialCa
               search or filters.
             </p>
           </div>
+        )}
+        {!isLoading && !loadError && totalPages > 1 && (
+          <nav aria-label="Auction pagination" className="mt-10 flex flex-wrap items-center justify-center gap-2">
+            <button type="button" disabled={currentPage === 1} onClick={() => changePage(currentPage - 1)}
+              className="rounded-xl border border-[var(--bidora-border)] bg-white px-4 py-3 disabled:cursor-not-allowed disabled:opacity-40">
+              Previous
+            </button>
+            {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+              <button key={page} type="button" aria-label={`Page ${page}`}
+                aria-current={currentPage === page ? "page" : undefined} onClick={() => changePage(page)}
+                className={`min-w-11 rounded-xl border px-3 py-3 ${currentPage === page
+                  ? "border-[var(--bidora-primary)] bg-[var(--bidora-primary)] text-white"
+                  : "border-[var(--bidora-border)] bg-white hover:border-[var(--bidora-primary)]"}`}>
+                {page}
+              </button>
+            ))}
+            <button type="button" disabled={currentPage === totalPages} onClick={() => changePage(currentPage + 1)}
+              className="rounded-xl border border-[var(--bidora-border)] bg-white px-4 py-3 disabled:cursor-not-allowed disabled:opacity-40">
+              Next
+            </button>
+          </nav>
         )}
       </div>
     </section>
