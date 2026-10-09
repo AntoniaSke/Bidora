@@ -300,6 +300,32 @@ export async function updateAuction(
       });
     }
 
+    // Only the existing portfolio seed account may extend its own marked demo
+    // listings after demo bids. Ordinary auction editing remains locked after a bid.
+    const demoEmail = "bidora_demo_catalogue_v3@bidora.demo";
+    const demoExtension = req.user!.email === demoEmail &&
+      existingAuction.description.startsWith("[DEMO:catalogue_v3]") &&
+      Object.keys(parsed.data).length === 1 && parsed.data.endsAt !== undefined &&
+      new Date(parsed.data.endsAt) > existingAuction.endsAt &&
+      new Date(parsed.data.endsAt).getTime() <= Date.now() + 180 * 86_400_000;
+    if (demoExtension) {
+      const deadline = new Date(parsed.data.endsAt!);
+      const result = await prisma.auction.updateMany({
+        where: {
+          id: auctionId, sellerId: userId, seller: { email: demoEmail },
+          description: { startsWith: "[DEMO:catalogue_v3]" },
+          bids: existingAuction.bids,
+          endsAt: { gt: new Date(), lt: deadline },
+          bidHistory: { every: { user: { email: { in: [1, 2, 3, 4].map(
+            (index) => `bidora_demo_${index}_catalogue_v3@bidora.demo`
+          ) } } } },
+        },
+        data: { endsAt: deadline },
+      });
+      if (!result.count) return res.status(409).json({ message: "Demo listing changed, ended or has non-demo bids. Deadline was not extended." });
+      return res.status(200).json(await prisma.auction.findUnique({ where: { id: auctionId } }));
+    }
+
     if (existingAuction.bids > 0) {
       return res.status(400).json({
         message: "Auction cannot be edited after the first bid",
