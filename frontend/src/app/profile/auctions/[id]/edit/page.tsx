@@ -109,10 +109,10 @@ export default function EditAuctionPage() {
                     startingPrice:
                         auction.startingPrice,
                     endDate:
-                        auction.endsAt.slice(
-                            0,
-                            16
-                        ),
+                        new Date(
+              new Date(auction.endsAt).getTime() -
+              new Date(auction.endsAt).getTimezoneOffset() * 60_000
+            ).toISOString().slice(0, 16),
                 });
 
                 /*
@@ -357,7 +357,7 @@ export default function EditAuctionPage() {
                                 ),
 
                             endsAt:
-                                data.endDate,
+                                new Date(data.endDate).toISOString(),
 
                             image:
                                 imageUrl,

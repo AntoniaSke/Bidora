@@ -3,7 +3,6 @@
 import { API_URL } from "@/lib/api";
 
 import { useEffect, useState } from "react";
-import { io } from "socket.io-client";
 import { toast } from "sonner";
 import { socket } from "@/lib/socket";
 import AuctionCountdown from "./AuctionCountdown";
@@ -79,302 +78,127 @@ export default function BidPanel({
     setIsLoadingBidStatus,
   ] = useState(true);
 
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const isOwnAuction =
     currentUserId !== null &&
     currentUserId === sellerId;
 
   const hasEnded =
     new Date(endsAt).getTime() <=
-    Date.now();
+    now;
 
-  /*
-    Load logged-in user and their
-    latest bid for this auction.
-  */
+  // Authentication and realtime data have separate lifetimes.
   useEffect(() => {
-    async function loadBidStatus() {
+    const controller = new AbortController();
+
+    async function loadUser() {
       try {
-        const userResponse =
-          await fetch(
-            `${API_URL}/api/auth/me`,
-            {
-              credentials: "include",
-            }
-          );
-
-        /*
-          Guest user.
-          They can still view auctions
-          and receive realtime updates.
-        */
-        if (!userResponse.ok) {
-          return;
+        const response = await fetch(`${API_URL}/api/auth/me`, {
+          credentials: "include",
+          signal: controller.signal,
+        });
+        const user = response.ok ? await response.json() : null;
+        if (!controller.signal.aborted) {
+          setCurrentUserId(user?.id ?? null);
         }
-
-        const user =
-          await userResponse.json();
-
-        setCurrentUserId(
-          user.id
-        );
-
-        const bidsResponse =
-          await fetch(
-            `${API_URL}/api/bids/mine`,
-            {
-              credentials: "include",
-            }
-          );
-
-        if (!bidsResponse.ok) {
-          return;
-        }
-
-        const myBids: MyBid[] =
-          await bidsResponse.json();
-
-        /*
-          Backend returns newest bids first,
-          so the first matching bid is the
-          user's latest bid on this auction.
-        */
-        const latestBid =
-          myBids.find(
-            (bid) =>
-              bid.auctionId ===
-              auctionId
-          );
-
-        if (!latestBid) {
-          return;
-        }
-
-        setMyLatestBid(
-          latestBid.amount
-        );
-
-        setIsHighestBidder(
-          latestBid.amount ===
-            currentBid
-        );
       } catch (error) {
-        console.error(
-          "Could not load bid status:",
-          error
-        );
-      } finally {
-        setIsLoadingBidStatus(
-          false
-        );
+        if (!controller.signal.aborted) {
+          console.error("Could not load current user:", error);
+        }
       }
     }
 
-    loadBidStatus();
+    loadUser();
+    return () => controller.abort();
+  }, [auctionId]);
 
-    socket.connect();
-
-  function handleBidPlaced(
-    data: BidPlacedEvent
-  ) {
-    if (
-      data.auctionId !==
-      auctionId
-    ) {
-      return;
-    }
-
-    setLocalCurrentBid(
-      data.currentBid
-    );
-
-    setLocalBids(
-      data.bids
-    );
-
-    setBidError("");
-
-    /*
-      Αν το bid έγινε από τον
-      τρέχοντα user.
-    */
-    if (
-      currentUserId !== null &&
-      data.bid.user.id ===
-        currentUserId
-    ) {
-      setMyLatestBid(
-        data.bid.amount
-      );
-
-      setIsHighestBidder(
-        true
-      );
-
-      return;
-    }
-
-    /*
-      Αν έκανε bid άλλος user,
-      ο προηγούμενος highest bidder
-      έχει πλέον γίνει outbid.
-    */
-    setIsHighestBidder(
-      false
-    );
-  }
-
-  function handleConnectError(
-    error: Error
-  ) {
-    console.error(
-      "Socket connection error:",
-      error
-    );
-  }
-
-  socket.on(
-    "bid-placed",
-    handleBidPlaced
-  );
-
-  socket.on(
-    "connect_error",
-    handleConnectError
-  );
-
-  return () => {
-    socket.off(
-      "bid-placed",
-      handleBidPlaced
-    );
-
-    socket.off(
-      "connect_error",
-      handleConnectError
-    );
-  };
-  }, [
-    auctionId,
-    currentBid,
-  ]);
-
-  /*
-    REALTIME BIDDING
-
-    Connect to Socket.io and join
-    only this auction's room.
-  */
   useEffect(() => {
-    const socket = io(
-      `${API_URL}`,
-      {
-        withCredentials: true,
-      }
-    );
+    const controller = new AbortController();
+    let eventVersion = 0;
+    let syncVersion = 0;
 
-    socket.on("connect", () => {
-      console.log(
-        "Socket connected:",
-        socket.id
-      );
+    async function handleConnect() {
+      socket.emit("join-auction", auctionId);
+      const version = eventVersion;
+      const requestVersion = ++syncVersion;
 
-      socket.emit(
-        "join-auction",
-        auctionId
-      );
-    });
+      // Refetch after reconnect because events can be missed while offline.
+      try {
+        const [auctionResponse, bidsResponse] = await Promise.all([
+          fetch(`${API_URL}/api/auctions/${auctionId}`, {
+            signal: controller.signal,
+          }),
+          currentUserId === null ? null : fetch(`${API_URL}/api/bids/mine`, {
+            credentials: "include",
+            signal: controller.signal,
+          }),
+        ]);
+        if (!auctionResponse.ok) {
+          throw new Error("Could not refresh auction");
+        }
+        const auction = await auctionResponse.json();
+        const myBids: MyBid[] = bidsResponse?.ok ? await bidsResponse.json() : [];
 
-    socket.on(
-      "bid-placed",
-      (
-        data: BidPlacedEvent
-      ) => {
-        /*
-          Extra safeguard.
-          The room should already ensure
-          this, but we verify the auction id.
-        */
-        if (
-          data.auctionId !==
-          auctionId
-        ) {
+        // A slower HTTP response must never overwrite a newer realtime bid.
+        if (controller.signal.aborted || version !== eventVersion ||
+            requestVersion !== syncVersion) {
           return;
         }
-
-        /*
-          Update price and bid count
-          immediately without refresh.
-        */
-        setLocalCurrentBid(
-          data.currentBid
-        );
-
-        setLocalBids(
-          data.bids
-        );
-
-        setBidError("");
-
-        /*
-          If THIS user placed the bid,
-          they are now the highest bidder.
-        */
-        if (
-          currentUserId !== null &&
-          data.bid.user.id ===
-            currentUserId
-        ) {
-          setMyLatestBid(
-            data.bid.amount
-          );
-
-          setIsHighestBidder(
-            true
-          );
-
-          return;
+        const latestBid = myBids.find((bid) => bid.auctionId === auctionId);
+        setLocalCurrentBid(auction.currentBid);
+        setLocalBids(auction.bids);
+        setMyLatestBid(latestBid?.amount ?? null);
+        setIsHighestBidder(latestBid?.amount === auction.currentBid);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          console.error("Could not refresh bid status:", error);
         }
-
-        /*
-          Someone else placed a bid.
-
-          If this user was winning,
-          they have now been outbid.
-          For users who never bid,
-          false is already the correct state.
-        */
-        setIsHighestBidder(
-          false
-        );
+      } finally {
+        if (!controller.signal.aborted && requestVersion === syncVersion) {
+          setIsLoadingBidStatus(false);
+        }
       }
-    );
+    }
 
-    socket.on(
-      "connect_error",
-      (error) => {
-        console.error(
-          "Socket connection error:",
-          error
-        );
-      }
-    );
+    function handleBidPlaced(data: BidPlacedEvent) {
+      if (data.auctionId !== auctionId) return;
+      eventVersion++;
+      setLocalCurrentBid(data.currentBid);
+      setLocalBids(data.bids);
+      setBidError("");
+      const isMyBid = currentUserId !== null && data.bid.user.id === currentUserId;
+      if (isMyBid) setMyLatestBid(data.bid.amount);
+      setIsHighestBidder(isMyBid);
+    }
+
+    function handleConnectError(error: Error) {
+      console.error("Socket connection error:", error);
+    }
+
+    socket.on("connect", handleConnect);
+    socket.on("bid-placed", handleBidPlaced);
+    socket.on("connect_error", handleConnectError);
+    if (socket.connected) {
+      handleConnect();
+    } else {
+      socket.connect();
+    }
 
     return () => {
-      socket.emit(
-        "leave-auction",
-        auctionId
-      );
-
-      socket.off(
-        "bid-placed"
-      );
-
-      socket.disconnect();
+      controller.abort();
+      socket.emit("leave-auction", auctionId);
+      socket.off("connect", handleConnect);
+      socket.off("bid-placed", handleBidPlaced);
+      socket.off("connect_error", handleConnectError);
+      // The shared connection is still used by Navbar and marketplace consumers.
     };
-  }, [
-    auctionId,
-    currentUserId,
-  ]);
+  }, [auctionId, currentUserId]);
 
   async function handleBid() {
     setBidError("");

@@ -233,7 +233,7 @@ export default function SellAuctionForm() {
               ),
 
             endsAt:
-              data.endDate,
+              new Date(data.endDate).toISOString(),
 
             image:
               imageUrl,
