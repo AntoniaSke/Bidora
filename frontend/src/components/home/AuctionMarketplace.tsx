@@ -26,6 +26,12 @@ export default function AuctionMarketplace() {
   const [auctions, setAuctions] = useState<Auction[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [category, setCategory] = useState("All");
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(interval);
+  }, []);
 
   const [favouriteIds, setFavouriteIds] = useState<number[]>(
     []
@@ -161,7 +167,7 @@ export default function AuctionMarketplace() {
         const isActive =
           new Date(
             auction.endsAt
-          ).getTime() > Date.now();
+          ).getTime() > now;
 
         return (
           matchesSearch &&
@@ -184,6 +190,7 @@ export default function AuctionMarketplace() {
     searchTerm,
     category,
     currentUserId,
+    now,
   ]);
 
   const homepageAuctions =
@@ -200,7 +207,7 @@ export default function AuctionMarketplace() {
             </p>
 
             <h2 className="mt-1 text-2xl sm:text-3xl font-bold text-[var(--bidora-text)]">
-              Find what you're looking for
+              Find what you&apos;re looking for
             </h2>
           </div>
 
