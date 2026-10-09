@@ -4,9 +4,10 @@ import { categories } from "@/src/data/categories";
 import { API_URL } from "@/lib/api";
 
 import { useEffect, useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { ArrowRight, Camera, Headphones, Palette, Zap, Tag, Search } from "lucide-react";
 import Link from "next/link";
 import { socket } from "@/lib/socket";
+import AuctionCountdown from "@/src/components/auctions/AuctionCountdown";
 import AuctionCard from "@/src/components/auctions/AuctionCard";
 
 type Auction = {
@@ -196,8 +197,57 @@ export default function AuctionMarketplace() {
   const homepageAuctions =
     filteredAuctions.slice(0, 4);
 
+  // Use the existing live catalogue independently of the browse filters.
+  const activeAuctions = auctions.filter((auction) =>
+    new Date(auction.endsAt).getTime() > now && auction.image && auction.sellerId !== currentUserId
+  );
+  const heroAuctions: Auction[] = [];
+  for (const preferred of ["Photography", "Electronics", "Art"]) {
+    const auction = activeAuctions.find((item) => item.category === preferred);
+    if (auction) heroAuctions.push(auction);
+  }
+  for (const auction of activeAuctions) {
+    if (heroAuctions.length === 3) break;
+    if (!heroAuctions.some((item) => item.id === auction.id)) heroAuctions.push(auction);
+  }
+
   return (
     <>
+      <section className="bidora-hero" aria-labelledby="hero-title">
+        <div className="hero-grid">
+          <div className="hero-copy">
+            <p className="hero-eyebrow"><span /> Live auctions · Unique finds</p>
+            <h1 id="hero-title">Discover your next <span>great find.</span></h1>
+            <p className="hero-description">Bid on unique pieces, discover everyday favourites, and make your next great find yours.</p>
+            <div className="hero-actions">
+              <Link href="/auctions" className="hero-primary">Explore auctions <ArrowRight size={20} /></Link>
+              <Link href="/sell" className="hero-secondary">Start selling</Link>
+            </div>
+            <div className="hero-benefits"><span><Zap size={18} /> Real-time bidding</span><span><Tag size={18} /> Finds for every budget</span></div>
+            <div className="hero-categories" aria-label="Explore categories">
+              {[{ name: "Electronics", icon: Headphones }, { name: "Collectibles", icon: Camera }, { name: "Art", icon: Palette }].map(({ name, icon: Icon }) => (
+                <Link key={name} href={`/auctions?category=${encodeURIComponent(name)}`}><Icon size={17} />{name}</Link>
+              ))}
+              <Link href="/categories">All categories <ArrowRight size={16} /></Link>
+            </div>
+          </div>
+          <div className="hero-showcase" aria-label="Featured live auctions">
+            {isLoading ? <div className="hero-placeholder" role="status">Finding your next great find…</div> : heroAuctions.length ? heroAuctions.map((auction, index) => (
+              <Link key={auction.id} href={`/auctions/${auction.id}`} className={`hero-auction hero-auction-${index}`}>
+                <div className="hero-auction-image"><img src={auction.image} alt={auction.title} /></div>
+                <div className="hero-auction-body">
+                  <h2>{auction.title}</h2><p>{auction.category}</p>
+                  <div className="hero-auction-bid">
+                    <div><span>Current bid</span><strong>{new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(auction.currentBid)}</strong></div>
+                    {index === 0 && <span className="hero-countdown"><AuctionCountdown endsAt={auction.endsAt} compact /></span>}
+                  </div>
+                  {index === 0 && <span className="hero-view">View auction <ArrowRight size={16} /></span>}
+                </div>
+              </Link>
+            )) : <div className="hero-placeholder"><Camera size={48} /><h2>Great finds are on their way.</h2><Link href="/sell">Be the first to list an item →</Link></div>}
+          </div>
+        </div>
+      </section>
       {/* SEARCH / FILTER SECTION */}
       <section>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
