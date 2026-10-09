@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { prisma } from "../lib/prisma.js";
-import { createAuctionSchema } from "../schemas/auctionSchema.js";
+import { createAuctionSchema, updateAuctionSchema } from "../schemas/auctionSchema.js";
 
 export async function getAuctions(
   req: Request,
@@ -124,6 +124,13 @@ export async function createAuction(
   try {
     const userId = req.user!.userId;
 
+    const parsed = createAuctionSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({
+        message: parsed.error.issues[0]?.message || "Invalid auction data",
+      });
+    }
+
     const {
       title,
       description,
@@ -131,15 +138,15 @@ export async function createAuction(
       startingPrice,
       image,
       endsAt,
-    } = req.body;
+    } = parsed.data;
 
     const auction = await prisma.auction.create({
       data: {
         title,
         description,
         category,
-        startingPrice: Number(startingPrice),
-        currentBid: Number(startingPrice),
+        startingPrice,
+        currentBid: startingPrice,
         image,
         endsAt: new Date(endsAt),
 
@@ -248,6 +255,17 @@ export async function updateAuction(
     const auctionId = Number(req.params.id);
     const userId = req.user!.userId;
 
+    if (!Number.isSafeInteger(auctionId) || auctionId <= 0) {
+      return res.status(400).json({ message: "Invalid auction id" });
+    }
+
+    const parsed = updateAuctionSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({
+        message: parsed.error.issues[0]?.message || "Invalid auction data",
+      });
+    }
+
     const existingAuction =
       await prisma.auction.findUnique({
         where: {
@@ -274,55 +292,40 @@ export async function updateAuction(
       });
     }
 
-    const {
-      title,
-      description,
-      category,
-      startingPrice,
-      endsAt,
-      image,
-    } = req.body;
-
-    const newStartingPrice =
-      startingPrice !== undefined
-        ? Number(startingPrice)
-        : existingAuction.startingPrice;
-
-    // Δεν επιτρέπουμε αλλαγή τιμής αν έχουν ήδη γίνει bids
-    if (
-      existingAuction.bids > 0 &&
-      newStartingPrice !== existingAuction.startingPrice
-    ) {
+    if (existingAuction.bids > 0) {
       return res.status(400).json({
-        message:
-          "Starting price cannot be changed after bidding has started",
+        message: "Auction cannot be edited after the first bid",
       });
     }
 
-    const updatedAuction =
-      await prisma.auction.update({
-        where: {
-          id: auctionId,
-        },
+    const { startingPrice, endsAt, ...fields } = parsed.data;
+    // Check eligibility in the write itself so a concurrent bid cannot be reset.
+    const result = await prisma.auction.updateMany({
+      where: {
+        id: auctionId,
+        sellerId: userId,
+        bids: 0,
+        endsAt: { gt: new Date() },
+      },
+      data: {
+        ...fields,
+        ...(startingPrice !== undefined && {
+          startingPrice,
+          currentBid: startingPrice,
+        }),
+        ...(endsAt !== undefined && { endsAt: new Date(endsAt) }),
+      },
+    });
 
-        data: {
-          title,
-          description,
-          category,
-          image,
-
-          startingPrice:
-            newStartingPrice,
-
-          currentBid:
-            newStartingPrice,
-
-          ...(endsAt && {
-            endsAt:
-              new Date(endsAt),
-          }),
-        },
+    if (result.count === 0) {
+      return res.status(409).json({
+        message: "Auction changed or ended. Reload before editing.",
       });
+    }
+
+    const updatedAuction = await prisma.auction.findUnique({
+      where: { id: auctionId },
+    });
 
     return res.status(200).json(updatedAuction);
   } catch (error) {
@@ -343,7 +346,7 @@ export async function deleteAuction(
     const auctionId = Number(req.params.id);
     const userId = req.user!.userId;
 
-    if (Number.isNaN(auctionId)) {
+    if (!Number.isSafeInteger(auctionId) || auctionId <= 0) {
       return res.status(400).json({
         message: "Invalid auction id",
       });
@@ -381,11 +384,20 @@ export async function deleteAuction(
       });
     }
 
-    await prisma.auction.delete({
+    const result = await prisma.auction.deleteMany({
       where: {
         id: auctionId,
+        sellerId: userId,
+        bids: 0,
+        endsAt: { gt: new Date() },
       },
     });
+
+    if (result.count === 0) {
+      return res.status(409).json({
+        message: "Auction changed or ended. Reload before deleting.",
+      });
+    }
 
     return res.status(200).json({
       message:
