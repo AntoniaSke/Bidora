@@ -597,3 +597,33 @@ Potential backend improvements include:
 - pagination
 - Cloudinary asset cleanup when auctions are deleted
 - additional monitoring and observability
+
+### Safe demo catalogue (60 auctions)
+
+The seed scripts now add 60 clearly marked demo auctions in 20 categories and
+1–4 bids per auction, favourites and bid notifications. They never delete old
+auctions or bids, reset prices, or alter existing passwords. Reruns with the same
+seed key/password skip existing listings and auctions that already have bids.
+Run one seed at a time. To create a fresh batch later, choose a new seed key.
+
+Set `DEMO_SEED_PASSWORD` to a unique strong password (at least 12 characters) and
+keep it for future runs. `DEMO_SEED_KEY` defaults to `catalogue_v3` and accepts
+1–12 lowercase letters, digits or underscores. Accounts use the reserved
+`@bidora.demo` domain and listings are marked `[DEMO:<seed key>]`.
+
+From the backend directory:
+
+```bash
+# Use the existing API instead of accessing PostgreSQL directly:
+export DEMO_API_URL=https://bidora-ashen.vercel.app
+export DEMO_SEED_KEY=catalogue_v3
+# Set DEMO_SEED_PASSWORD securely in your shell or environment; do not commit it.
+npm run seed:auctions -- --dry-run
+npm run seed:auctions
+npm run seed:activity
+```
+
+Without `DEMO_API_URL`, the scripts use the configured `DATABASE_URL`. API mode
+uses the normal authenticated create/bid/favourite routes; bids also trigger
+normal notifications and Socket.IO events. The homepage's six popular categories
+are currently editorial selections, not a ranking calculated from bid activity.

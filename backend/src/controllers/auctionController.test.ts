@@ -3,7 +3,7 @@ import { test } from "node:test";
 import type { Request, Response } from "express";
 import { prisma } from "../lib/prisma.js";
 import { getAuctions, createAuction, updateAuction, deleteAuction } from "./auctionController.js";
-import { createAuctionSchema, updateAuctionSchema } from "../schemas/auctionSchema.js";
+import { auctionCategorySchema, createAuctionSchema, updateAuctionSchema } from "../schemas/auctionSchema.js";
 
 // Replace the lazy Prisma delegate with an inert object before mocking methods.
 // No test can fall through to a real database operation.
@@ -169,7 +169,7 @@ test("edit/delete reject missing, other-owned, ended and bid-on auctions", async
 
 test("category filtering normalizes all supported categories and retains active-only filtering", async (t) => {
   const read = t.mock.method(auctionStore, "findMany", async () => []);
-  for (const category of ["Electronics", "Fashion", "Gaming", "Collectibles", "Art", "Home"]) {
+  for (const category of auctionCategorySchema.options) {
     const { res, result } = response();
     await getAuctions({ query: { category: ` ${category.toLowerCase()} ` } } as unknown as Request, res);
     assert.equal(result.code, 200);
@@ -192,4 +192,35 @@ test("unfiltered listing works and invalid categories never reach the database",
     assert.equal(result.code, 400);
   }
   assert.equal(read.mock.callCount(), 1);
+});
+
+
+test("demo catalogue covers every category with three valid unique listings", async () => {
+  const { buildDemoAuctions } = await import("../scripts/seedAuctions.js");
+  const auctions = buildDemoAuctions("validation");
+  assert.equal(auctions.length, 60);
+  assert.equal(new Set(auctions.map((auction) => auction.title)).size, 60);
+  for (const category of auctionCategorySchema.options) {
+    assert.equal(auctions.filter((auction) => auction.category === category).length, 3);
+  }
+  assert.ok(auctions.every((auction) => auction.description.startsWith("[DEMO:validation]")));
+});
+
+test("demo activity uses increasing bids and different consecutive bidders", async () => {
+  const { activityPlan } = await import("../scripts/seedDemoActivity.js");
+  let total = 0;
+  for (let index = 0; index < 60; index++) {
+    const plan = activityPlan(index, 25);
+    total += plan.length;
+    let previousAmount = 25;
+    let previousBidder = -1;
+    for (const bid of plan) {
+      assert.ok(bid.amount > previousAmount);
+      assert.notEqual(bid.bidderIndex, previousBidder);
+      assert.ok(bid.bidderIndex >= 0 && bid.bidderIndex < 4);
+      previousAmount = bid.amount;
+      previousBidder = bid.bidderIndex;
+    }
+  }
+  assert.equal(total, 150);
 });

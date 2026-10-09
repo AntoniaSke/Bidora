@@ -7,8 +7,8 @@
     "test": "node --import tsx --test src/controllers/auctionController.test.ts",
     "dev": "tsx watch src/server.ts",
     "start": "tsx src/server.ts",
-    "seed:auctions": "tsx src/scripts/seedAuctions.ts",
-    "seed:activity": "tsx src/scripts/seedDemoActivity.ts"
+    "seed:auctions": "node --import tsx src/scripts/seedAuctions.ts",
+    "seed:activity": "node --import tsx src/scripts/seedDemoActivity.ts"
   },
   "keywords": [],
   "author": "",

@@ -26,7 +26,7 @@ export default function Navbar() {
     },
     {
       label: "Categories",
-      href: "/#categories",
+      href: "/categories",
     },
   ];
 

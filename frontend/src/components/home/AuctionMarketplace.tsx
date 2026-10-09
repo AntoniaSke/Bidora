@@ -1,5 +1,6 @@
 "use client";
 
+import { categories } from "@/src/data/categories";
 import { API_URL } from "@/lib/api";
 
 import { useEffect, useMemo, useState } from "react";
@@ -25,6 +26,12 @@ export default function AuctionMarketplace() {
   const [auctions, setAuctions] = useState<Auction[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [category, setCategory] = useState("All");
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(interval);
+  }, []);
 
   const [favouriteIds, setFavouriteIds] = useState<number[]>(
     []
@@ -160,7 +167,7 @@ export default function AuctionMarketplace() {
         const isActive =
           new Date(
             auction.endsAt
-          ).getTime() > Date.now();
+          ).getTime() > now;
 
         return (
           matchesSearch &&
@@ -183,6 +190,7 @@ export default function AuctionMarketplace() {
     searchTerm,
     category,
     currentUserId,
+    now,
   ]);
 
   const homepageAuctions =
@@ -199,7 +207,7 @@ export default function AuctionMarketplace() {
             </p>
 
             <h2 className="mt-1 text-2xl sm:text-3xl font-bold text-[var(--bidora-text)]">
-              Find what you're looking for
+              Find what you&apos;re looking for
             </h2>
           </div>
 
@@ -242,6 +250,7 @@ export default function AuctionMarketplace() {
             </div>
 
             <select
+              aria-label="Category"
               value={category}
               onChange={(event) =>
                 setCategory(
@@ -264,29 +273,9 @@ export default function AuctionMarketplace() {
                 All categories
               </option>
 
-              <option value="Electronics">
-                Electronics
-              </option>
-
-              <option value="Fashion">
-                Fashion
-              </option>
-
-              <option value="Gaming">
-                Gaming
-              </option>
-
-              <option value="Collectibles">
-                Collectibles
-              </option>
-
-              <option value="Art">
-                Art
-              </option>
-
-              <option value="Home">
-                Home
-              </option>
+              {categories.map((item) => (
+                <option key={item.id} value={item.name}>{item.name}</option>
+              ))}
             </select>
           </div>
 

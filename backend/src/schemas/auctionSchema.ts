@@ -1,7 +1,26 @@
 import { z } from "zod";
 
 export const auctionCategorySchema = z.enum([
-  "Electronics", "Fashion", "Gaming", "Collectibles", "Art", "Home",
+  "Electronics",
+  "Fashion",
+  "Gaming",
+  "Collectibles",
+  "Art",
+  "Home",
+  "Books",
+  "Sports",
+  "Music",
+  "Photography",
+  "Jewelry",
+  "Watches",
+  "Toys",
+  "Furniture",
+  "Garden",
+  "Tools",
+  "Beauty",
+  "Automotive",
+  "Antiques",
+  "Travel",
 ]);
 
 export const auctionCategoryFilterSchema = z.string().trim()
