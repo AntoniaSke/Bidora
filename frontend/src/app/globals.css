@@ -293,4 +293,4 @@ body {
 }
 input, select, textarea { color: var(--bidora-text); }
 input::placeholder, textarea::placeholder { color: var(--bidora-text-secondary); }
-[class*="bg-[var(--bidora-primary)]"], [class*="bg-[var(--bidora-accent)]"] { color: #0c1623; }
+[class~="bg-[var(--bidora-primary)]"], [class~="bg-[var(--bidora-accent)]"] { color: #0c1623; }
